@@ -23,7 +23,8 @@ public:
     QTableView * getView ();
     QSqlRelationalTableModel *getModel();
     QList<QString> getStationsList();
-    void setMyQuery(QString q);
+    QTableView *setMyQuery(QString q);
+    void setView(QTableView* &);
     QSqlRelationalTableModel* setModel(QSqlRelationalTableModel* &model);
 
     void disconnectFromDataBase ();
@@ -36,7 +37,6 @@ private:
     int m_temp = 0;
     void ready ();
     bool checkDB();
-    QSqlQueryModel* m_model;
     QSqlRelationalTableModel* m_model2;
     QTableView* m_view;
     QString m_nameDB;

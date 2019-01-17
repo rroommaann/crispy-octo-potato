@@ -7,37 +7,35 @@
 #include <QSqlRecord>
 #include <QTableWidget>
 #include <QSqlQueryModel>
+#include <QTranslator>
 #include <multihashofrecords.h>
-#include <sizeoofmassiveofnotequalrows.h>
 
-static QVector<int>* compareDbs(QSqlRelationalTableModel* &model1, QSqlRelationalTableModel* &model2){
+static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSqlRelationalTableModel* &model2){
 
     MultiHashOfRecords massiveOfRecors1(model1);
     MultiHashOfRecords massiveOfRecors2(model2);
     QString stationName = model1->record(1).field(0).value().toString();
-    QAbstractItemView* table1 = new QTableWidget();
-    QAbstractItemView* table2 = new QTableWidget();
-    QSqlQuery query1("SELECT Stations.NameSt, TS_Name.NameTs, TS.Question, "
-                                    "TS.Module, TS.I, TS.J, "
-                                    "TS.Lock, TS.Pulse, TS.Inverse, "
-                                    "TS.Occupation, TS.SvtfMain, TS.SvtfDiag, "
-                                    "TS.SvtfClass, TS.SvtfError, "
-                                    "TS.NoRc, TS.NoStrl, "
-                                    "TS.NoSvtf, TS.ExtData, "
-                                    "TS.StrlZsName, TS.StrlMuName "
-                                    "FROM TS, TS_Name, Stations "
-                                    "WHERE Stations.NameSt='"+stationName+"' AND TS.Cod=TS_Name.Cod AND TS.NoSt=Stations.NoSt ORDER BY TS.Module,TS.I, TS.J, TS_Name.NameTs ASC;", (model1)->database());
-    QSqlQuery query2("SELECT Stations.NameSt, TS_Name.NameTs, TS.Question, "
-                                    "TS.Module, TS.I, TS.J, "
-                                    "TS.Lock, TS.Pulse, TS.Inverse, "
-                                    "TS.Occupation, TS.SvtfMain, TS.SvtfDiag, "
-                                    "TS.SvtfClass, TS.SvtfError, "
-                                    "TS.NoRc, TS.NoStrl, "
-                                    "TS.NoSvtf, TS.ExtData, "
-                                    "TS.StrlZsName, TS.StrlMuName "
-                                    "FROM TS, TS_Name, Stations "
-                                    "WHERE Stations.NameSt='"+stationName+"' AND TS.Cod=TS_Name.Cod AND TS.NoSt=Stations.NoSt ORDER BY TS.Module,TS.I, TS.J, TS_Name.NameTs ASC;", (model2)->database());
+    qDebug() << stationName;
+    QString query = "SELECT Stations.NameSt, TS_Name.NameTs, TS.Question, "
+                    "TS.Module, TS.I, TS.J, "
+                    "TS.Lock, TS.Pulse, TS.Inverse, "
+                    "TS.Occupation, TS.SvtfMain, TS.SvtfDiag, "
+                    "TS.SvtfClass, TS.SvtfError, "
+                    "TS.NoRc, TS.NoStrl, "
+                    "TS.NoSvtf, TS.ExtData, "
+                    "TS.StrlZsName, TS.StrlMuName "
+                    "FROM TS, TS_Name, Stations "
+                    "WHERE Stations.NameSt='"+stationName+"' AND TS.Cod=TS_Name.Cod AND TS.NoSt=Stations.NoSt ORDER BY TS.Module,TS.I, TS.J, TS_Name.NameTs ASC;";
 
+    QSqlQuery query1(model1->database());
+    query1.prepare(query);
+    query1.exec();
+    qDebug() << query1.isActive();
+
+    QSqlQuery query2(model2->database());
+    query2.prepare(query);
+    query2.exec();
+    qDebug() << query2.isActive();
 
     int* parameters1 = MultiHashOfRecords::getMaxParameters(model1);
     int* parameters2 = MultiHashOfRecords::getMaxParameters(model2);
@@ -46,42 +44,39 @@ static QVector<int>* compareDbs(QSqlRelationalTableModel* &model1, QSqlRelationa
     int maxI       = (parameters1[1] > parameters2[1]) ? parameters1[1] : parameters2[1];
     int maxJ       = (parameters1[2] > parameters2[2]) ? parameters1[2] : parameters2[2];
 
-    int sizeoOfMassiveOfNotEqualRows = maxModules*maxI*maxJ*2;
-
-    qDebug() << sizeoOfMassiveOfNotEqualRows << maxModules << maxI << maxJ;
-    QVector<int>* vector = new QVector<int>;
-    int vectorIndex = 0;
-
-    int delete1 = 1;
-//    int ***massiveOfNotEqualRows;
-//    int **massiveOfNotEqualRows1;
-//    int **massiveOfNotEqualRows2;
-//    int **massiveOfNotEqualRows3 = new int* [1];
-//    massiveOfNotEqualRows3[0] = new int [1];
-//    massiveOfNotEqualRows3[0][0] = 0;
-//    massiveOfNotEqualRows1 = new int* [sizeoOfMassiveOfNotEqualRows];
-//    massiveOfNotEqualRows2 = new int* [sizeoOfMassiveOfNotEqualRows];
-//    for (int i = 0; i < sizeoOfMassiveOfNotEqualRows; i++) {
-//        massiveOfNotEqualRows1[i] = new int [4];
-//        massiveOfNotEqualRows2[i] = new int [4];
-//    }
-//    massiveOfNotEqualRows = new int** [3];
-//    massiveOfNotEqualRows[0] = massiveOfNotEqualRows1;
-//    massiveOfNotEqualRows[1] = massiveOfNotEqualRows2;
-//    massiveOfNotEqualRows[2] = massiveOfNotEqualRows3;
-//    int index1 = 0;
-//    int index2 = 0;
+    QTableWidget* table1 = new QTableWidget;
+    QTableWidget* table2 = new QTableWidget;
+    static QStringList  string = { "NameSt","NameTs",
+                        "Question", "Module", "I", "J",
+                        "Lock","Pulse",
+                        "Inverse","Occupation",
+                        "SvtfMain","SvtfDiag",
+                        "SvtfClass", "SvtfError",
+                        "NoRc", "NoStrl",
+                        "NoSvtf", "ExtData",
+                        "StrlZsName", "StrlMuName"
+    };
+    table1->setColumnCount(query1.record().count());
+    table2->setColumnCount(query2.record().count());
+    for (int i = 0; i < string.size(); i++){
+        table1->setHorizontalHeaderItem(i, new QTableWidgetItem);
+        table2->setHorizontalHeaderItem(i, new QTableWidgetItem);
+    }
+    table1->setHorizontalHeaderLabels(string);
+    table2->setHorizontalHeaderLabels(string);
+    QVector<QTableWidget*>* vector = new QVector<QTableWidget*>(2);
+    vector->insert(0,table1);
+    vector->insert(1,table2);
+    int rows = 0;
+    table1->setRowCount(rows);
+    table2->setRowCount(rows);
+    QBrush brush;
+    brush.setStyle(Qt::SolidPattern);
+    QColor color = "#FF9BAA";
+    brush.setColor(color);
     for (int module = 0; module < maxModules ; module++){
         for(int i = 0; i < maxI; i++){
             for(int j = 0; j < maxJ; j++){
-                static QString string[] = { "NameTs","Lock","Pulse",
-                                    "Inverse","Occupation",
-                                    "SvtfMain","SvtfDiag",
-                                    "SvtfClass", "SvtfError",
-                                    "NoRc", "NoStrl",
-                                    "NoSvtf", "ExtData",
-                                    "StrlZsName", "StrlMuName"
-                        };
                 QString key = QVariant(module).toString() + " " + QVariant(i).toString() + " " + QVariant(j).toString();
                 qDebug() << key;
                 qDebug() << "Проверка строки";
@@ -90,69 +85,37 @@ static QVector<int>* compareDbs(QSqlRelationalTableModel* &model1, QSqlRelationa
                 if (list1.isEmpty() && !list2.isEmpty()){
                     qDebug() << "list1 пуст, а list2 нет";
                     for (int i = 0; i < list2.size(); i++){
-                        QSqlRecord record2 = list2[i];
-                        record2.field("id").setGenerated(false);
-                        qDebug() << table1->insertRecord(-1, QSqlRecord());
-                        qDebug() << table2->insertRecord(-1, record2);
-                        qDebug() << record2;
-                        vector->resize(vector->size() +1);
-                        for (int k = 0; k < table1->rowCount(); k++){
-                            if (table2->record(k).field("Module").value().toInt() == module &&
-                                table2->record(k).field("I")     .value().toInt() == i      &&
-                                table2->record(k).field("J")     .value().toInt() == j){
-                                qDebug() << module << i << j << k;
-                                vector->insert(vectorIndex++, k);
-                                break;
-                            }
+                        QSqlRecord record = list2[i];
+                        rows++;
+                        table1->setRowCount(rows);
+                        table2->setRowCount(rows);
+                        for(int col = 0; col < table1->columnCount(); col++){
+                            QString fieldName = string[col];
+                            QTableWidgetItem *newItem1 = new QTableWidgetItem("*",0);
+                            QTableWidgetItem *newItem2 = new QTableWidgetItem(record.field(fieldName).value().toString(),0);
+                            newItem1->setBackground(brush);
+                            newItem2->setBackground(brush);
+                            table1->setItem(rows-1,col, newItem1);
+                            table2->setItem(rows-1,col, newItem2);
                         }
                     }
-//                    massiveOfNotEqualRows2[index2][0] = module;
-//                    massiveOfNotEqualRows2[index2][1] = i;
-//                    massiveOfNotEqualRows2[index2][2] = j;
-//                    massiveOfNotEqualRows2[index2][3] = 1;
-
-//                    massiveOfNotEqualRows1[index1][0] = module;
-//                    massiveOfNotEqualRows1[index1][1] = i;
-//                    massiveOfNotEqualRows1[index1][2] = j;
-//                    massiveOfNotEqualRows1[index1][3] = 0;
-
-//                    massiveOfNotEqualRows3[0][0]++;
-//                    index1++;
-//                    index2++;
                 } else if (list2.isEmpty() && !list1.isEmpty()){
                     qDebug() << "list2 пуст, а list1 нет";
                     for (int i = 0; i < list1.size(); i++){
-                        QSqlRecord record1 = list1[i];
-                        record1.field("id").setGenerated(false);
-                        qDebug() << table2->insertRecord(-1, QSqlRecord());
-                        qDebug() << table1->insertRecord(-1, record1);
-                        qDebug() << record1;
-                        qDebug() << table1->lastError();
-                        qDebug() << table2->lastError();
-                        vector->resize(vector->size() +1);
-                        for (int k = 0; k < table1->rowCount(); k++){
-                            if (table1->record(k).field("Module").value().toInt() == module &&
-                                table1->record(k).field("I")     .value().toInt() == i      &&
-                                table1->record(k).field("J")     .value().toInt() == j){
-                                qDebug() << module << i << j << k;
-                                vector->insert(vectorIndex++, k);
-                                break;
-                            }
+                        QSqlRecord record = list1[i];
+                        rows++;
+                        table1->setRowCount(rows);
+                        table2->setRowCount(rows);
+                        for(int col = 0; col < table1->columnCount(); col++){
+                            QString fieldName = string[col];
+                            QTableWidgetItem *newItem1 = new QTableWidgetItem(record.field(fieldName).value().toString(),0);
+                            QTableWidgetItem *newItem2 = new QTableWidgetItem("*", 0);
+                            newItem1->setBackground(brush);
+                            newItem2->setBackground(brush);
+                            table1->setItem(rows-1,col, newItem1);
+                            table2->setItem(rows-1,col, newItem2);
                         }
                     }
-//                    massiveOfNotEqualRows2[index2][0] = module;
-//                    massiveOfNotEqualRows2[index2][1] = i;
-//                    massiveOfNotEqualRows2[index2][2] = j;
-//                    massiveOfNotEqualRows2[index2][3] = 0;
-
-//                    massiveOfNotEqualRows1[index1][0] = module;
-//                    massiveOfNotEqualRows1[index1][1] = i;
-//                    massiveOfNotEqualRows1[index1][2] = j;
-//                    massiveOfNotEqualRows1[index1][3] = 1;
-
-//                    index1++;
-//                    index2++;
-//                    massiveOfNotEqualRows3[0][0]++;
                 } else if (list2.isEmpty() && list1.isEmpty()){
                     qDebug() << "list1 пуст и list2 пуст";
                 } else {
@@ -170,54 +133,38 @@ static QVector<int>* compareDbs(QSqlRelationalTableModel* &model1, QSqlRelationa
                                     int test = 0;
                                     for (QString s : string){
                                         qDebug() << "Проход по массиву строк сравнения";
-                                        if (record1.field(s).value() != record2.field(s).value()){
-
-                                            qDebug() << record1.field(s).value();
-                                            qDebug() << record2.field(s).value();
-
-//                                            massiveOfNotEqualRows1[index1][0] = module;
-//                                            massiveOfNotEqualRows1[index1][1] = i;
-//                                            massiveOfNotEqualRows1[index1][2] = j;
-//                                            massiveOfNotEqualRows1[index1][3] = 1;
-
-//                                            massiveOfNotEqualRows2[index2][0] = module;
-//                                            massiveOfNotEqualRows2[index2][1] = i;
-//                                            massiveOfNotEqualRows2[index2][2] = j;
-//                                            massiveOfNotEqualRows2[index2][3] = 1;
-
-//                                            index1++;
-//                                            index2++;
-//                                            massiveOfNotEqualRows3[0][0]++;
+                                        if (record1.field(s).value() != record2.field(s).value().toString()){
                                             test = 1;
                                             break;
                                         }
                                     }
                                     if (test == 0){
-                                        record1.field("id").setGenerated(false);
-                                        record2.field("id").setGenerated(false);
-                                        qDebug() << table1->insertRecord(-1, record1);
-                                        qDebug() << table2->insertRecord(-1, record2);
-                                        qDebug() << record1;
-                                        qDebug() << record2;
+                                        rows++;
+                                        table1->setRowCount(rows);
+                                        table2->setRowCount(rows);
+                                        for(int col = 0; col < table1->columnCount(); col++){
+                                            QString fieldName = string[col];
+                                            QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
+                                            QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
+                                            table1->setItem(rows-1,col, newItem1);
+                                            table2->setItem(rows-1,col, newItem2);
+                                        }
                                     } else {
-                                        record1.field("id").setGenerated(false);
-                                        record2.field("id").setGenerated(false);
-                                        qDebug() << table1->insertRecord(-1, record1);
-                                        qDebug() << table2->insertRecord(-1, record2);
-                                        qDebug() << record1;
-                                        qDebug() << record2;
-                                        vector->resize(vector->size() +1);
-                                        for (int k = 0; k < table1->rowCount(); k++){
-                                            if (table1->record(k).field("Module").value().toInt() == module &&
-                                                table1->record(k).field("I")     .value().toInt() == i      &&
-                                                table1->record(k).field("J")     .value().toInt() == j){
-                                                qDebug() << module << i << j << k;
-                                                vector->insert(vectorIndex++, k);
-                                                break;
-                                            }
+                                        rows++;
+                                        table1->setRowCount(rows);
+                                        table2->setRowCount(rows);
+                                        for(int col = 0; col < table1->columnCount(); col++){
+                                            QString fieldName = string[col];
+                                            QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
+                                            QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
+                                            newItem1->setBackground(brush);
+                                            newItem2->setBackground(brush);
+                                            table1->setItem(rows-1,col, newItem1);
+                                            table2->setItem(rows-1,col, newItem2);
                                         }
                                         test = 0;
                                     }
+
                                 }
                             }
                         }
@@ -225,16 +172,6 @@ static QVector<int>* compareDbs(QSqlRelationalTableModel* &model1, QSqlRelationa
                 }
             }
         }
-    }
-    //    table1->setRelation(0, QSqlRelation("Stations", "NoSt", "NameSt"));
-    //    table1->setRelation(1, QSqlRelation("TS_Name", "Cod", "NameTS"));
-    //    table2->setRelation(0, QSqlRelation("Stations", "NoSt", "NameSt"));
-    //    table2->setRelation(1, QSqlRelation("TS_Name", "Cod", "NameTS"));
-    model1 = table1;
-    model2 = table2;
-    qDebug() << vector->size() << "Размер";
-    for (int i = 0; i < vector->size(); i++){
-        qDebug() << vector->at(i);
     }
     return vector;
 }

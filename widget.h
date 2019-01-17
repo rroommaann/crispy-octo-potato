@@ -23,7 +23,7 @@ public:
 
 private:
 
-
+    void initialize ();
     QBoxLayout* m_mainLayout;
     QList<QUrl>* m_filePath;
 
@@ -37,6 +37,8 @@ private:
 
     MyTable* m_tableLeft;
     MyTable* m_tableRight;
+    QTableView* m_tableLeftVeiew;
+    QTableView* m_tableRightVeiew;
 
     QLabel* m_nameLabelLeft;
     QLabel* m_nameLabelRight;
@@ -53,8 +55,9 @@ private:
     QStringList* m_stationsList1;
     QStringList* m_stationsList2;
 
+    QVector<QTableWidget*>* vector;
+
     void setTable(QString name, QString q);
-    void sortMassive(int** massive, int **massive1, int sizeoOfMassiveOfNotEqualRows, QSqlRelationalTableModel* model1, QSqlRelationalTableModel *model2);
 
 private slots:
     void chooseStation(QString string);

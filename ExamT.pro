@@ -34,7 +34,6 @@ HEADERS += \
     connection.h \
     mytableview.h \
     comparedbs.h \
-    multihashofrecords.h \
-    sizeoofmassiveofnotequalrows.h
+    multihashofrecords.h
 
 FORMS +=
