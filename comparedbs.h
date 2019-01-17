@@ -71,9 +71,13 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
     table1->setRowCount(rows);
     table2->setRowCount(rows);
     QBrush brush;
+    QBrush diffBrush;
     brush.setStyle(Qt::SolidPattern);
+    diffBrush.setStyle(Qt::SolidPattern);
     QColor color = "#FF9BAA";
+    QColor diffColor = "#FF0000";
     brush.setColor(color);
+    diffBrush.setColor(diffColor);
     for (int module = 0; module < maxModules ; module++){
         for(int i = 0; i < maxI; i++){
             for(int j = 0; j < maxJ; j++){
@@ -120,52 +124,74 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                     qDebug() << "list1 пуст и list2 пуст";
                 } else {
                     qDebug() << "list1 не пуст и list2 не пуст";
-                    for (int i = 0; i < list1.size(); i++){
-                        QSqlRecord record1 = list1[i];
-                        qDebug() << "Проход по list1";
-                        for (int i = 0; i < list2.size(); i++){
-                            QSqlRecord record2 = list2[i];
-                            qDebug() << "Проход по list2";
-                            if(!record1.isEmpty()){
-                                qDebug() << "record1 существует";
-                                if(!record2.isEmpty()){
-                                    qDebug() << "record2 существует";
-                                    int test = 0;
-                                    for (QString s : string){
-                                        qDebug() << "Проход по массиву строк сравнения";
-                                        if (record1.field(s).value() != record2.field(s).value().toString()){
-                                            test = 1;
-                                            break;
-                                        }
+                    int maxListSize = (list1.size() >= list2.size()) ? list1.size() : list2.size();
+                    for (int i = 0; i < maxListSize; i++){
+                        QSqlRecord record1;
+                        QSqlRecord record2;
+                        if (list1.size() > list2.size()){
+                            record1 = list1[i];
+                            if(i >= list2.size()){
+                                record2 = QSqlRecord();
+                            } else if (i < list2.size()){
+                                record2 = list2[i];
+                            }
+                        }
+                        if (list2.size() > list1.size()){
+                            record2 = list1[i];
+                            if(i >= list1.size()){
+                                record1 = QSqlRecord();
+                            } else if (i < list1.size()){
+                                record1 = list1[i];
+                            }
+                        }
+                        if (list1.size() == list2.size()){
+                            record1 = list1[i];
+                            record2 = list2[i];
+                        }
+                        if(!record1.isEmpty()){
+                            qDebug() << "record1 существует";
+                            if(!record2.isEmpty()){
+                                qDebug() << "record2 существует";
+                                int test = 0;
+                                for (QString s : string){
+                                    qDebug() << "Проход по массиву строк сравнения";
+                                    if (record1.field(s).value() != record2.field(s).value().toString()){
+                                        test = 1;
+                                        break;
                                     }
-                                    if (test == 0){
-                                        rows++;
-                                        table1->setRowCount(rows);
-                                        table2->setRowCount(rows);
-                                        for(int col = 0; col < table1->columnCount(); col++){
-                                            QString fieldName = string[col];
-                                            QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
-                                            QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
-                                            table1->setItem(rows-1,col, newItem1);
-                                            table2->setItem(rows-1,col, newItem2);
-                                        }
-                                    } else {
-                                        rows++;
-                                        table1->setRowCount(rows);
-                                        table2->setRowCount(rows);
-                                        for(int col = 0; col < table1->columnCount(); col++){
-                                            QString fieldName = string[col];
-                                            QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
-                                            QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
+                                }
+                                if (test == 0){
+                                    rows++;
+                                    table1->setRowCount(rows);
+                                    table2->setRowCount(rows);
+                                    for(int col = 0; col < table1->columnCount(); col++){
+                                        QString fieldName = string[col];
+                                        QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
+                                        QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
+                                        table1->setItem(rows-1,col, newItem1);
+                                        table2->setItem(rows-1,col, newItem2);
+                                    }
+                                } else {
+                                    rows++;
+                                    table1->setRowCount(rows);
+                                    table2->setRowCount(rows);
+                                    for(int col = 0; col < table1->columnCount(); col++){
+                                        QString fieldName = string[col];
+                                        QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
+                                        QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
+                                        if (record1.field(fieldName).value().toString() != record2.field(fieldName).value().toString()){
+                                            newItem1->setBackground(diffBrush);
+                                            newItem2->setBackground(diffBrush);
+                                        } else {
                                             newItem1->setBackground(brush);
                                             newItem2->setBackground(brush);
-                                            table1->setItem(rows-1,col, newItem1);
-                                            table2->setItem(rows-1,col, newItem2);
                                         }
-                                        test = 0;
+                                        table1->setItem(rows-1,col, newItem1);
+                                        table2->setItem(rows-1,col, newItem2);
                                     }
-
+                                    test = 0;
                                 }
+
                             }
                         }
                     }

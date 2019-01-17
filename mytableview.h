@@ -23,20 +23,17 @@ public:
     QTableView * getView ();
     QSqlRelationalTableModel *getModel();
     QList<QString> getStationsList();
-    QTableView *setMyQuery(QString q);
+    QTableView *setStation(QString q);
     void setView(QTableView* &);
     QSqlRelationalTableModel* setModel(QSqlRelationalTableModel* &model);
 
     void disconnectFromDataBase ();
     ~MyTable();
 
-public slots:
-    void highlightCell (int k);
-
 private:
     int m_temp = 0;
-    void ready ();
     bool checkDB();
+    void setViewReady();
     QSqlRelationalTableModel* m_model2;
     QTableView* m_view;
     QString m_nameDB;

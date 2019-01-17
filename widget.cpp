@@ -120,13 +120,13 @@ void Widget::chooseStation(QString string){
         m_tablesLayout->removeWidget(m_tableLeftVeiew);
         delete m_tableLeftVeiew;
         m_tableLeftVeiew = new QTableView;
-        m_tableLeftVeiew = m_tableLeft->setMyQuery(string);
+        m_tableLeftVeiew = m_tableLeft->setStation(string);
         m_tablesLayout->insertWidget(0, m_tableLeftVeiew);
     } else if (q == "comboBox2"){
         m_tablesLayout->removeWidget(m_tableRightVeiew);
         delete m_tableRightVeiew;
         m_tableRightVeiew = new QTableView;
-        m_tableRightVeiew = m_tableRight->setMyQuery(string);
+        m_tableRightVeiew = m_tableRight->setStation(string);
         m_tablesLayout->insertWidget(1, m_tableRightVeiew);
     }
 }
@@ -155,7 +155,7 @@ void Widget::close()
     if (q == "closeButton1" && m_nameLabelLeft->text() != ""){
         delete m_tableLeftVeiew;
         m_tableLeftVeiew = new QTableView;
-        m_tableLeftVeiew = m_tableLeft->getView();
+        m_tablesLayout->insertWidget(0, m_tableLeftVeiew);
         m_nameLabelLeft->setText("");
         m_comboBoxLeft->clear();
     }
@@ -163,7 +163,7 @@ void Widget::close()
     {
         delete m_tableRightVeiew;
         m_tableRightVeiew = new QTableView;
-        m_tableRightVeiew = m_tableRight->getView();
+        m_tablesLayout->insertWidget(1, m_tableRightVeiew);
         m_nameLabelRight->setText("");
         m_comboBoxRight->clear();
     }
