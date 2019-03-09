@@ -1,7 +1,6 @@
 #include "widget.h"
 #include "multihashofrecords.h"
 #include "comparedbs.h"
-#include <bits/stdc++.h>
 
 using namespace std;
 
@@ -39,10 +38,10 @@ void Widget::initialize(){
     m_tableLeftVeiew = m_tableLeft->getView();
     m_tableRightVeiew = m_tableRight->getView();
 
-    m_comboBoxLeft = new QComboBox();
-    m_comboBoxLeft->setObjectName("comboBox1");
-    m_comboBoxRight = new QComboBox();
-    m_comboBoxRight->setObjectName("comboBox2");
+//    m_comboBoxLeft = new QComboBox();
+//    m_comboBoxLeft->setObjectName("comboBox1");
+//    m_comboBoxRight = new QComboBox();
+//    m_comboBoxRight->setObjectName("comboBox2");
 
     m_nameLabelLeft = new QLabel(this);
     m_nameLabelLeft->setObjectName("nameLabel1");
@@ -82,13 +81,10 @@ void Widget::initialize(){
 
 void Widget::CompareDBs(){
 
-    if (m_comboBoxLeft->currentText() != m_comboBoxRight->currentText()){
-        QMessageBox::critical (this, tr("Ошибка"), tr("Выбраны разные станции!"));
-        return;
-    }
-    m_tableLeft->getView()->setSelectionMode(QAbstractItemView::MultiSelection);
-    m_tableRight->getView()->setSelectionMode(QAbstractItemView::MultiSelection);
-
+//    if (m_comboBoxLeft->currentText() != m_comboBoxRight->currentText()){
+//        QMessageBox::critical (this, tr("Ошибка"), tr("Выбраны разные станции!"));
+//        return;
+//    }
     QSqlRelationalTableModel* model1 = m_tableLeft->getModel();
     QSqlRelationalTableModel* model2 = m_tableRight->getModel();
 
@@ -99,16 +95,27 @@ void Widget::CompareDBs(){
     m_tablesLayout->removeWidget(m_tableRightVeiew);
     delete m_tableLeftVeiew;
     delete m_tableRightVeiew;
+
     m_tableLeft->setView(m_tableLeftVeiew);
     m_tableRight->setView(m_tableRightVeiew);
     m_tableLeftVeiew = vector->value(0);
     m_tableRightVeiew = vector->value(1);
+
+    m_tableLeftVeiew->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_tableLeftVeiew->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    m_tableRightVeiew->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_tableRightVeiew->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
     m_tablesLayout->insertWidget(0, m_tableLeftVeiew);
     m_tablesLayout->insertWidget(1, m_tableRightVeiew);
+
     connect(m_tableLeftVeiew->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightVeiew->verticalScrollBar(), SLOT(setValue(int)));
     connect(m_tableRightVeiew->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftVeiew->verticalScrollBar(), SLOT(setValue(int)));
     connect(m_tableLeftVeiew->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightVeiew->horizontalScrollBar(), SLOT(setValue(int)));
     connect(m_tableRightVeiew->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftVeiew->horizontalScrollBar(), SLOT(setValue(int)));
+    connect(m_tableLeftVeiew, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(table1ItemDoubleClicked(QTableWidgetItem *)));
+    connect(m_tableRightVeiew, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(table2ItemDoubleClicked(QTableWidgetItem *)));
 
     showMaximized();
 }
@@ -157,7 +164,7 @@ void Widget::close()
         m_tableLeftVeiew = new QTableView;
         m_tablesLayout->insertWidget(0, m_tableLeftVeiew);
         m_nameLabelLeft->setText("");
-        m_comboBoxLeft->clear();
+//        m_comboBoxLeft->clear();
     }
     else if (q == "closeButton2" && m_nameLabelRight->text() != "")
     {
@@ -165,7 +172,7 @@ void Widget::close()
         m_tableRightVeiew = new QTableView;
         m_tablesLayout->insertWidget(1, m_tableRightVeiew);
         m_nameLabelRight->setText("");
-        m_comboBoxRight->clear();
+//        m_comboBoxRight->clear();
     }
 }
 
@@ -180,13 +187,13 @@ void Widget::setTable(QString name, QString q){
         m_tablesLayout->removeWidget(m_tableLeftVeiew);
         delete m_tableLeft;
         m_tableLeft = new MyTable(name);
-        m_stationsList1 = new QStringList(m_tableLeft->getStationsList());
-        m_comboBoxLeft->addItems(*m_stationsList1);
-        m_labelLayoutLeft->insertWidget(1, m_comboBoxLeft);
+//        m_stationsList1 = new QStringList(m_tableLeft->getStationsList());
+//        m_comboBoxLeft->addItems(*m_stationsList1);
+//        m_labelLayoutLeft->insertWidget(1, m_comboBoxLeft);
         m_tableLeftVeiew = m_tableLeft->getView();
         m_tablesLayout->insertWidget(0, m_tableLeftVeiew);
         m_nameLabelLeft->setText(name);
-        connect(m_comboBoxLeft, SIGNAL(currentIndexChanged(QString)), this, SLOT(chooseStation(QString)));
+//        connect(m_comboBoxLeft, SIGNAL(currentIndexChanged(QString)), this, SLOT(chooseStation(QString)));
     }
     else
     {
@@ -197,19 +204,28 @@ void Widget::setTable(QString name, QString q){
         m_tablesLayout->removeWidget(m_tableRightVeiew);
         delete m_tableRight;
         m_tableRight = new MyTable(name);
-        m_stationsList2 = new QStringList(m_tableRight->getStationsList());
-        m_comboBoxRight->addItems(*m_stationsList2);
-        m_labelLayoutRight->insertWidget(1, m_comboBoxRight);
+//        m_stationsList2 = new QStringList(m_tableRight->getStationsList());
+//        m_comboBoxRight->addItems(*m_stationsList2);
+//        m_labelLayoutRight->insertWidget(1, m_comboBoxRight);
         m_tableRightVeiew = m_tableRight->getView();
         m_tablesLayout->insertWidget(1, m_tableRightVeiew);
         m_nameLabelRight->setText(name);
-        connect(m_comboBoxRight, SIGNAL(currentIndexChanged(QString)), this, SLOT(chooseStation(QString)));
+//        connect(m_comboBoxRight, SIGNAL(currentIndexChanged(QString)), this, SLOT(chooseStation(QString)));
     }
     connect(m_tableLeft->getView()->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableRight->getView()->verticalScrollBar(), SLOT(setValue(int)));
     connect(m_tableRight->getView()->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeft->getView()->verticalScrollBar(), SLOT(setValue(int)));
     connect(m_tableLeft->getView()->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableRight->getView()->horizontalScrollBar(), SLOT(setValue(int)));
     connect(m_tableRight->getView()->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeft->getView()->horizontalScrollBar(), SLOT(setValue(int)));
 
+}
+
+void Widget::table1ItemDoubleClicked(QTableWidgetItem *item){
+    m_tableLeft->setStation(item->text());
+    m_item1 = item;
+}
+void Widget::table2ItemDoubleClicked(QTableWidgetItem *item){
+    m_tableRight->setStation(item->text());
+    m_item2 = item;
 }
 
 Widget::~Widget()

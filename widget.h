@@ -1,7 +1,7 @@
 #ifndef WIDGET_H
 #define WIDGET_H
 
-#include "mytableview.h"
+#include "mytable.h"
 
 #include <QWidget>
 #include <QDialog>
@@ -49,17 +49,22 @@ private:
     QBoxLayout* m_labelLayoutLeft;
     QBoxLayout* m_labelLayoutRight;
 
-    QComboBox* m_comboBoxLeft;
-    QComboBox* m_comboBoxRight;
+//    QComboBox* m_comboBoxLeft;
+//    QComboBox* m_comboBoxRight;
 
     QStringList* m_stationsList1;
     QStringList* m_stationsList2;
 
-    QVector<QTableWidget*>* vector;
+    QVector<QTableWidget*>* m_vector;
+
+    QTableWidgetItem* m_item1;
+    QTableWidgetItem* m_item2;
 
     void setTable(QString name, QString q);
 
 private slots:
+    void table1ItemDoubleClicked(QTableWidgetItem *item);
+    void table2ItemDoubleClicked(QTableWidgetItem *item);
     void chooseStation(QString string);
     void open();
     void close();

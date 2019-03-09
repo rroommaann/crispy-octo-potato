@@ -38,6 +38,7 @@ public:
         return tempMass;
 
     }
+
 private:
     QMultiHash <QString, QSqlRecord>* m_multiHash;
 };

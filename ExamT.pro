@@ -4,12 +4,12 @@
 #
 #-------------------------------------------------
 
-QT       += core gui sql
+CONFIG += qt release
+QT     += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 TARGET = ExamT
-TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
 # any feature of Qt which has been marked as deprecated (the exact warnings
@@ -26,14 +26,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         widget.cpp \
-    mytableview.cpp \
-    multihashofrecords.cpp
+    multihashofrecords.cpp \
+    mytable.cpp
 
 HEADERS += \
         widget.h \
     connection.h \
-    mytableview.h \
     comparedbs.h \
-    multihashofrecords.h
-
-FORMS +=
+    multihashofrecords.h \
+    mytable.h
