@@ -21,7 +21,8 @@ public:
         int maxModule = 0;
         int maxI = 0;
         int maxJ = 0;
-        for(int i = 0; i < model->rowCount(); i++){
+        int rowCountOfModel = model->rowCount();
+        for(int i = 0; i < rowCountOfModel; i++){
             if (model->record(i).field("Module").value().toInt() > maxModule){
                 maxModule = model->record(i).field("Module").value().toInt();
             }
@@ -36,7 +37,6 @@ public:
         tempMass[1] = ++maxI;
         tempMass[2] = ++maxJ;
         return tempMass;
-
     }
 
 private:

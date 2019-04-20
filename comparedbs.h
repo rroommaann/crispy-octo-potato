@@ -8,6 +8,8 @@
 #include <QTableWidget>
 #include <QSqlQueryModel>
 #include <QTranslator>
+#include <QProgressDialog>
+#include <QTimer>
 #include <multihashofrecords.h>
 
 static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSqlRelationalTableModel* &model2){
@@ -54,8 +56,8 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
             while(query1.next()){
                 size1++;
             }
-
             query1.first();
+
             int size2 = 1;
             while(query2.next()){
                 size2++;
@@ -64,39 +66,49 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
 
             int maxNoSt = (size1) > (size2) ? (size1-1) : (size2-1);
 
-            static QStringList stringForStation = { "NoSt", "NameSt", "ShortName",
-                                                    "NoMainSt", "Alias", "NoKrug",
-                                                    "Ras", "NoStUp", "NoStDown",
-                                                    "Media", "MainPathOdd", "MainPathEven",
-                                                    "OnOff", "DuAu", "DuRu",
-                                                    "Addr", "BitmapID", "RadioID",
-                                                    "RadioMonitorID", "T1", "T2",
-                                                    "T3", "T4", "Version", "Config",
-                                                    "NoStGet", "NumOfView", "ExtFormList",
-                                                    "DistReport", "Orient", "StDirOdd",
-                                                    "StDirEvn", "Pathes", "TraHtmlFile",
-                                                    "SignAutoPass", "TimeEndAutoPass", "TimeBegAutoPass",
-                                                    "NoRcOdd", "NoRcEvn", "RsrvKP",
-                                                    "ByByLogic", "GidUralKpId", "ConfigKP2007",
-                                                    "SetunConfig", "ObjectType", "DuOnTu",
-                                                    "NoStOrg", "RpcTumsConfig", "_dcmpkKanalName", "_dcmpkNameSt", "_dcmpkNoSt"
+            static QStringList listForStationsColumns = {   "NoSt", "NameSt", "ShortName",
+                                                            "NoMainSt", "Alias", "NoKrug",
+                                                            "Ras", "NoStUp", "NoStDown",
+                                                            "Media", "MainPathOdd", "MainPathEven",
+                                                            "OnOff", "DuAu", "DuRu",
+                                                            "Addr", "BitmapID", "RadioID",
+                                                            "RadioMonitorID", "T1", "T2",
+                                                            "T3", "T4", "Version", "Config",
+                                                            "NoStGet", "NumOfView", "ExtFormList",
+                                                            "DistReport", "Orient", "StDirOdd",
+                                                            "StDirEvn", "Pathes", "TraHtmlFile",
+                                                            "SignAutoPass", "TimeEndAutoPass", "TimeBegAutoPass",
+                                                            "NoRcOdd", "NoRcEvn", "RsrvKP",
+                                                            "ByByLogic", "GidUralKpId", "ConfigKP2007",
+                                                            "SetunConfig", "ObjectType", "DuOnTu",
+                                                            "NoStOrg", "RpcTumsConfig", "_dcmpkKanalName", "_dcmpkNameSt", "_dcmpkNoSt"
             };
-            table1->setColumnCount(query1.record().count());
-            table2->setColumnCount(query2.record().count());
-            for (int i = 0; i < stringForStation.size(); i++){
+
+            int columnCount = query1.record().count();
+            table1->setColumnCount(columnCount);
+            table2->setColumnCount(columnCount);
+            for (int i = 0; i < listForStationsColumns.size(); i++){
                 table1->setHorizontalHeaderItem(i, new QTableWidgetItem);
                 table2->setHorizontalHeaderItem(i, new QTableWidgetItem);
             }
-            table1->setHorizontalHeaderLabels(stringForStation);
-            table2->setHorizontalHeaderLabels(stringForStation);
+            table1->setHorizontalHeaderLabels(listForStationsColumns);
+            table2->setHorizontalHeaderLabels(listForStationsColumns);
 
             for (int i = 0; i < maxNoSt; i++){
 
                 QSqlRecord record1 = query1.record();
                 QSqlRecord record2 = query2.record();
+
+                if((record1.field(0).value().toInt() == 0) && (record1.field(1).value().toString() == "")){
+                    record1 = QSqlRecord();
+                }
+                if((record2.field(0).value().toInt() == 0) && (record2.field(1).value().toString() == "")){
+                    record2 = QSqlRecord();
+                }
+
                 if (!record1.isEmpty() && !record2.isEmpty()){
                     int test = 0;
-                    for (QString s : stringForStation){
+                    for (QString s : listForStationsColumns){
                         if (record1.field(s).value() != record2.field(s).value().toString()){
                             test = 1;
                             break;
@@ -106,8 +118,8 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                         rows++;
                         table1->setRowCount(rows);
                         table2->setRowCount(rows);
-                        for(int col = 0; col < table1->columnCount(); col++){
-                            QString fieldName = stringForStation[col];
+                        for(int col = 0; col < columnCount; col++){
+                            QString fieldName = listForStationsColumns[col];
                             QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
                             QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
                             table1->setItem(rows-1,col, newItem1);
@@ -117,8 +129,8 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                         rows++;
                         table1->setRowCount(rows);
                         table2->setRowCount(rows);
-                        for(int col = 0; col < table1->columnCount(); col++){
-                            QString fieldName = stringForStation[col];
+                        for(int col = 0; col < columnCount; col++){
+                            QString fieldName = listForStationsColumns[col];
                             QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
                             QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
                             if (record1.field(fieldName).value().toString() != record2.field(fieldName).value().toString()){
@@ -138,10 +150,10 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                     rows++;
                     table1->setRowCount(rows);
                     table2->setRowCount(rows);
-                    for(int col = 0; col < table1->columnCount(); col++){
-                        QString fieldName = stringForStation[col];
+                    for(int col = 0; col < columnCount; col++){
+                        QString fieldName = listForStationsColumns[col];
                         QTableWidgetItem *newItem1 = new QTableWidgetItem("*",0);
-                        QTableWidgetItem *newItem2 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
+                        QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
                         newItem1->setBackground(brush);
                         newItem2->setBackground(brush);
                         table1->setItem(rows-1,col, newItem1);
@@ -152,9 +164,9 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                     rows++;
                     table1->setRowCount(rows);
                     table2->setRowCount(rows);
-                    for(int col = 0; col < table1->columnCount(); col++){
-                        QString fieldName = stringForStation[col];
-                        QTableWidgetItem *newItem1 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
+                    for(int col = 0; col < columnCount; col++){
+                        QString fieldName = listForStationsColumns[col];
+                        QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
                         QTableWidgetItem *newItem2 = new QTableWidgetItem("*", 0);
                         newItem1->setBackground(brush);
                         newItem2->setBackground(brush);
@@ -198,7 +210,7 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
     int maxI       = (parameters1[1] > parameters2[1]) ? parameters1[1] : parameters2[1];
     int maxJ       = (parameters1[2] > parameters2[2]) ? parameters1[2] : parameters2[2];
 
-    static QStringList  string = { "NameSt","NameTs",
+    static QStringList  listOfColumns = { "NameSt","NameTs",
                         "Question", "Module", "I", "J",
                         "Lock","Pulse",
                         "Inverse","Occupation",
@@ -208,31 +220,39 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                         "NoSvtf", "ExtData",
                         "StrlZsName", "StrlMuName"
     };
-    table1->setColumnCount(query1.record().count());
-    table2->setColumnCount(query2.record().count());
-    for (int i = 0; i < string.size(); i++){
+
+    int columnCount = query1.record().count();
+    table1->setColumnCount(columnCount);
+    table2->setColumnCount(columnCount);
+    for (int i = 0; i < listOfColumns.size(); i++){
         table1->setHorizontalHeaderItem(i, new QTableWidgetItem);
         table2->setHorizontalHeaderItem(i, new QTableWidgetItem);
     }
-    table1->setHorizontalHeaderLabels(string);
-    table2->setHorizontalHeaderLabels(string);
+    table1->setHorizontalHeaderLabels(listOfColumns);
+    table2->setHorizontalHeaderLabels(listOfColumns);
+
+    int numTasks = maxModules*maxI*maxJ;
+    int progressValue = 0;
+    QProgressDialog progress("Task in progress...", QString(), 0, numTasks);
+    progress.setWindowModality(Qt::WindowModal);
+    progress.setAutoClose(false);
+    progress.setAutoReset(false);
+
     for (int module = 0; module < maxModules ; module++){
         for(int i = 0; i < maxI; i++){
             for(int j = 0; j < maxJ; j++){
+                progress.setValue(progressValue++);
                 QString key = QVariant(module).toString() + " " + QVariant(i).toString() + " " + QVariant(j).toString();
-                qDebug() << key;
-                qDebug() << "Проверка строки";
                 QList<QSqlRecord> list1 = massiveOfRecors1.getMassive()->values(key);
                 QList<QSqlRecord> list2 = massiveOfRecors2.getMassive()->values(key);
                 if (list1.isEmpty() && !list2.isEmpty()){
-                    qDebug() << "list1 пуст, а list2 нет";
                     for (int i = 0; i < list2.size(); i++){
                         QSqlRecord record = list2[i];
                         rows++;
                         table1->setRowCount(rows);
                         table2->setRowCount(rows);
-                        for(int col = 0; col < table1->columnCount(); col++){
-                            QString fieldName = string[col];
+                        for(int col = 0; col < columnCount; col++){
+                            QString fieldName = listOfColumns[col];
                             QTableWidgetItem *newItem1 = new QTableWidgetItem("*",0);
                             QTableWidgetItem *newItem2 = new QTableWidgetItem(record.field(fieldName).value().toString(),0);
                             newItem1->setBackground(brush);
@@ -242,14 +262,13 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                         }
                     }
                 } else if (list2.isEmpty() && !list1.isEmpty()){
-                    qDebug() << "list2 пуст, а list1 нет";
                     for (int i = 0; i < list1.size(); i++){
                         QSqlRecord record = list1[i];
                         rows++;
                         table1->setRowCount(rows);
                         table2->setRowCount(rows);
                         for(int col = 0; col < table1->columnCount(); col++){
-                            QString fieldName = string[col];
+                            QString fieldName = listOfColumns[col];
                             QTableWidgetItem *newItem1 = new QTableWidgetItem(record.field(fieldName).value().toString(),0);
                             QTableWidgetItem *newItem2 = new QTableWidgetItem("*", 0);
                             newItem1->setBackground(brush);
@@ -259,9 +278,8 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                         }
                     }
                 } else if (list2.isEmpty() && list1.isEmpty()){
-                    qDebug() << "list1 пуст и list2 пуст";
+
                 } else {
-                    qDebug() << "list1 не пуст и list2 не пуст";
                     int maxListSize = (list1.size() >= list2.size()) ? list1.size() : list2.size();
                     for (int i = 0; i < maxListSize; i++){
                         QSqlRecord record1;
@@ -287,12 +305,9 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                             record2 = list2[i];
                         }
                         if(!record1.isEmpty()){
-                            qDebug() << "record1 существует";
                             if(!record2.isEmpty()){
-                                qDebug() << "record2 существует";
                                 int test = 0;
-                                for (QString s : string){
-                                    qDebug() << "Проход по массиву строк сравнения";
+                                for (QString s : listOfColumns){
                                     if (record1.field(s).value() != record2.field(s).value().toString()){
                                         test = 1;
                                         break;
@@ -302,8 +317,8 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                                     rows++;
                                     table1->setRowCount(rows);
                                     table2->setRowCount(rows);
-                                    for(int col = 0; col < table1->columnCount(); col++){
-                                        QString fieldName = string[col];
+                                    for(int col = 0; col < columnCount; col++){
+                                        QString fieldName = listOfColumns[col];
                                         QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
                                         QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
                                         table1->setItem(rows-1,col, newItem1);
@@ -313,8 +328,8 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                                     rows++;
                                     table1->setRowCount(rows);
                                     table2->setRowCount(rows);
-                                    for(int col = 0; col < table1->columnCount(); col++){
-                                        QString fieldName = string[col];
+                                    for(int col = 0; col < columnCount; col++){
+                                        QString fieldName = listOfColumns[col];
                                         QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
                                         QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
                                         if (record1.field(fieldName).value().toString() != record2.field(fieldName).value().toString()){

@@ -12,6 +12,7 @@
 #include <QtSql>
 #include <QDebug>
 #include <QFile>
+#include <QTimer>
 
 class Widget : public QWidget
 {
@@ -23,6 +24,9 @@ public:
 
 private:
 
+    boolean m_isTableLeftSet = false;
+    boolean m_isTableRightSet = false;
+
     void initialize ();
     QBoxLayout* m_mainLayout;
     QList<QUrl>* m_filePath;
@@ -33,12 +37,14 @@ private:
     QPushButton* m_closeButtonLeft;
     QPushButton* m_closeButtonRight;
 
+    QPushButton* m_resetButton;
+
     QPushButton* m_compareButton;
 
     MyTable* m_tableLeft;
     MyTable* m_tableRight;
-    QTableView* m_tableLeftVeiew;
-    QTableView* m_tableRightVeiew;
+    QTableWidget* m_tableLeftView;
+    QTableWidget* m_tableRightView;
 
     QLabel* m_nameLabelLeft;
     QLabel* m_nameLabelRight;
@@ -52,14 +58,19 @@ private:
 //    QComboBox* m_comboBoxLeft;
 //    QComboBox* m_comboBoxRight;
 
-    QStringList* m_stationsList1;
-    QStringList* m_stationsList2;
+    QStringList m_stationsList1;
+    QStringList m_stationsList2;
 
     QVector<QTableWidget*>* m_vector;
 
     QTableWidgetItem* m_item1;
     QTableWidgetItem* m_item2;
 
+    QBrush m_brushGreen;
+    QBrush m_brush1;
+    QBrush m_brush2;
+
+    void clearLayout(QLayout *layout);
     void setTable(QString name, QString q);
 
 private slots:
@@ -69,7 +80,7 @@ private slots:
     void open();
     void close();
     void CompareDBs();
-
+    void reset();
 };
 
 #endif // WIDGET_H

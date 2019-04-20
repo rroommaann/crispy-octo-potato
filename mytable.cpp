@@ -7,7 +7,6 @@ MyTable::MyTable(QString tableName, QWidget *parent)
     m_nameDB = tableName;
     m_temp = 1;
     if (!createConnection(m_nameDB)){
-
     }
     m_model2 = new QSqlRelationalTableModel(this, QSqlDatabase::database(m_nameDB));
     m_model2->setTable("Stations");
@@ -33,7 +32,6 @@ void MyTable::setViewReady(){
     m_view->setModel(m_model2);
     m_view->setItemDelegate(new QSqlRelationalDelegate(m_view));
     m_view->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    m_view->setCornerButtonEnabled(true);
     m_view->setSelectionMode(QAbstractItemView::SingleSelection);
     m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
@@ -82,7 +80,7 @@ bool MyTable::checkDB(){
 QTableView* MyTable::getView(){
     if (MyTable::checkDB()){
         return this->m_view;
-    } else return new QTableView;
+    } else return nullptr;
 }
 
 void MyTable::setView(QTableView* &tableView){
@@ -92,7 +90,7 @@ void MyTable::setView(QTableView* &tableView){
 QSqlRelationalTableModel* MyTable::getModel(){
     if (MyTable::checkDB()){
         return m_model2;
-    } else return new QSqlRelationalTableModel;
+    } else return nullptr;
 }
 
 QSqlRelationalTableModel* MyTable::setModel(QSqlRelationalTableModel* &model){
