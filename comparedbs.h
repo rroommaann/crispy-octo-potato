@@ -225,23 +225,15 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
     table1->setColumnCount(columnCount);
     table2->setColumnCount(columnCount);
     for (int i = 0; i < listOfColumns.size(); i++){
-        table1->setHorizontalHeaderItem(i, new QTableWidgetItem);
-        table2->setHorizontalHeaderItem(i, new QTableWidgetItem);
+        table1->setHorizontalHeaderItem(i, new QTableWidgetItem());
+        table2->setHorizontalHeaderItem(i, new QTableWidgetItem());
     }
     table1->setHorizontalHeaderLabels(listOfColumns);
     table2->setHorizontalHeaderLabels(listOfColumns);
 
-    int numTasks = maxModules*maxI*maxJ;
-    int progressValue = 0;
-    QProgressDialog progress("Task in progress...", QString(), 0, numTasks);
-    progress.setWindowModality(Qt::WindowModal);
-    progress.setAutoClose(false);
-    progress.setAutoReset(false);
-
     for (int module = 0; module < maxModules ; module++){
         for(int i = 0; i < maxI; i++){
             for(int j = 0; j < maxJ; j++){
-                progress.setValue(progressValue++);
                 QString key = QVariant(module).toString() + " " + QVariant(i).toString() + " " + QVariant(j).toString();
                 QList<QSqlRecord> list1 = massiveOfRecors1.getMassive()->values(key);
                 QList<QSqlRecord> list2 = massiveOfRecors2.getMassive()->values(key);
@@ -344,7 +336,6 @@ static QVector<QTableWidget*>* compareDbs(QSqlRelationalTableModel* &model1, QSq
                                     }
                                     test = 0;
                                 }
-
                             }
                         }
                     }

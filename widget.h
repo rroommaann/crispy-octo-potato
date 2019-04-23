@@ -26,6 +26,7 @@ private:
 
     boolean m_isTableLeftSet = false;
     boolean m_isTableRightSet = false;
+    boolean m_isCompared = false;
 
     void initialize ();
     QBoxLayout* m_mainLayout;
@@ -55,12 +56,6 @@ private:
     QBoxLayout* m_labelLayoutLeft;
     QBoxLayout* m_labelLayoutRight;
 
-//    QComboBox* m_comboBoxLeft;
-//    QComboBox* m_comboBoxRight;
-
-    QStringList m_stationsList1;
-    QStringList m_stationsList2;
-
     QVector<QTableWidget*>* m_vector;
 
     QTableWidgetItem* m_item1;
@@ -70,13 +65,11 @@ private:
     QBrush m_brush1;
     QBrush m_brush2;
 
-    void clearLayout(QLayout *layout);
     void setTable(QString name, QString q);
 
 private slots:
     void table1ItemDoubleClicked(QTableWidgetItem *item);
     void table2ItemDoubleClicked(QTableWidgetItem *item);
-    void chooseStation(QString string);
     void open();
     void close();
     void CompareDBs();

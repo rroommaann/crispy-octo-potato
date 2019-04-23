@@ -31,7 +31,6 @@ SOURCES += \
 
 HEADERS += \
         widget.h \
-    connection.h \
     comparedbs.h \
     multihashofrecords.h \
     mytable.h
