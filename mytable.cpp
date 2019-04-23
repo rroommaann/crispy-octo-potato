@@ -4,7 +4,6 @@ MyTable::MyTable(QString tableName, QWidget *parent)
     : QWidget(parent)
 {
     m_nameDB = tableName;
-    m_temp = 1;
     {
         QSqlDatabase db = QSqlDatabase::addDatabase("QODBC", m_nameDB);
         db.setDatabaseName("DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};FIL={MS Access};DBQ=" + tableName);
@@ -25,6 +24,8 @@ MyTable::MyTable(QString tableName, QWidget *parent)
 MyTable::MyTable(QWidget *parent)
     : QWidget(parent)
 {
+    m_model2 = new QSqlRelationalTableModel(this);
+    m_view = new QTableView(this);
 }
 
 void MyTable::setViewReady(){
@@ -50,24 +51,16 @@ void MyTable::setStation(QString q){
     }
 }
 
-bool MyTable::checkDB(){
-    return (m_temp == 1);
-}
-
 QTableView* MyTable::getView(){
-    if (MyTable::checkDB()){
-        return this->m_view;
-    } else return nullptr;
+    return m_view;
 }
 
 void MyTable::setView(QTableView* &tableView){
-    this->m_view = tableView;
+    m_view = tableView;
 }
 
 QSqlRelationalTableModel* MyTable::getModel(){
-    if (MyTable::checkDB()){
-        return m_model2;
-    } else return nullptr;
+    return m_model2;
 }
 
 MyTable::~MyTable(){

@@ -40,7 +40,8 @@ void Widget::initialize(){
     connect(m_closeButtonLeft, SIGNAL(clicked()), this, SLOT (close()));
     connect(m_closeButtonRight, SIGNAL(clicked()), this, SLOT (close()));
 
-    connect(m_compareButton, SIGNAL(clicked()), this, SLOT (CompareDBs()));
+    connect(m_compareButton, SIGNAL(clicked()), this, SLOT (compareDBs()));
+    connect(m_compareButton, SIGNAL(clicked()), this, SLOT (setIsCompared()));
 
     m_tableLeft = new MyTable();
     m_tableRight = new MyTable();
@@ -82,7 +83,7 @@ void Widget::initialize(){
     setLayout(m_mainLayout);
 }
 
-void Widget::CompareDBs(){
+void Widget::compareDBs(){
 
     if (!(m_isTableLeftSet && m_isTableRightSet) && !(m_item1 && m_item2)){
         return;
@@ -126,9 +127,12 @@ void Widget::CompareDBs(){
     connect(m_tableRightView->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->verticalScrollBar(), SLOT(setValue(int)));
     connect(m_tableLeftView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightView->horizontalScrollBar(), SLOT(setValue(int)));
     connect(m_tableRightView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->horizontalScrollBar(), SLOT(setValue(int)));
-    connect(m_tableLeftView, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(table1ItemDoubleClicked(QTableWidgetItem *)));
-    connect(m_tableRightView, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(table2ItemDoubleClicked(QTableWidgetItem *)));
+    connect(m_tableLeftView, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(doubleClickedTableLeftItem(QTableWidgetItem *)));
+    connect(m_tableRightView, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(doubleClickedTableRightItem(QTableWidgetItem *)));
     delete vector;
+}
+
+void Widget::setIsCompared(){
     m_isCompared = true;
 }
 
@@ -268,11 +272,11 @@ void Widget::setTable(QString name, QString q){
         connect(m_tableRightView->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->verticalScrollBar(), SLOT(setValue(int)));
         connect(m_tableLeftView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightView->horizontalScrollBar(), SLOT(setValue(int)));
         connect(m_tableRightView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->horizontalScrollBar(), SLOT(setValue(int)));
-        this->CompareDBs();
+        compareDBs();
     }
 }
 
-void Widget::table1ItemDoubleClicked(QTableWidgetItem *item){
+void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item){
     if((!m_item1) || (m_item1->background() != m_brushGreen)) {
         m_brush1 = item->background();
         item->setBackground(m_brushGreen);
@@ -287,7 +291,7 @@ void Widget::table1ItemDoubleClicked(QTableWidgetItem *item){
     }
     m_item1->setSelected(false);
 }
-void Widget::table2ItemDoubleClicked(QTableWidgetItem *item){
+void Widget::doubleClickedTableRightItem(QTableWidgetItem *item){
     if((!m_item2) || (m_item2->background() != m_brushGreen)) {
         m_brush2 = item->background();
         item->setBackground(m_brushGreen);
@@ -305,12 +309,10 @@ void Widget::table2ItemDoubleClicked(QTableWidgetItem *item){
 
 Widget::~Widget()
 {
-    delete m_tableRight->getModel();
-    delete m_tableLeft->getModel();
+    delete m_tableRight;
+    delete m_tableLeft;
     QStringList list =  QSqlDatabase::connectionNames();
     for(int i = 0; i < list.size(); i++){
         QSqlDatabase::removeDatabase(list[i]);
     }
-    m_tableLeftView->deleteLater();
-    m_tableRightView->deleteLater();
 }

@@ -27,8 +27,6 @@ public:
     ~MyTable();
 
 private:
-    int m_temp = 0;
-    bool checkDB();
     void setViewReady();
     QSqlRelationalTableModel* m_model2;
     QTableView* m_view;

@@ -68,11 +68,12 @@ private:
     void setTable(QString name, QString q);
 
 private slots:
-    void table1ItemDoubleClicked(QTableWidgetItem *item);
-    void table2ItemDoubleClicked(QTableWidgetItem *item);
+    void doubleClickedTableLeftItem(QTableWidgetItem *item);
+    void doubleClickedTableRightItem(QTableWidgetItem *item);
     void open();
     void close();
-    void CompareDBs();
+    void compareDBs();
+    void setIsCompared();
     void reset();
 };
 
