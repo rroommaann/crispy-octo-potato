@@ -29,7 +29,7 @@ MyTable::MyTable(QWidget *parent)
 }
 
 void MyTable::setViewReady(){
-    m_view = new QTableView();
+    m_view = new QTableView(this);
     m_view->horizontalHeader()->setSectionsMovable(true);
     m_view->setModel(m_model2);
     m_view->setItemDelegate(new QSqlRelationalDelegate(m_view));

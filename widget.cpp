@@ -167,8 +167,6 @@ void Widget::close()
         QSqlDatabase::database(m_nameLabelLeft->text()).close();
         QSqlDatabase::removeDatabase(m_nameLabelLeft->text());
         m_tableLeftView = new QTableWidget();
-        QTableView* temp = static_cast<QTableView *>(m_tableLeftView);
-        m_tableLeft->setView(temp);
         m_tablesLayout->insertWidget(0, m_tableLeftView);
         m_nameLabelLeft->setText("");
         m_isTableLeftSet = false;
@@ -182,8 +180,6 @@ void Widget::close()
         QSqlDatabase::database(m_nameLabelRight->text()).close();
         QSqlDatabase::removeDatabase(m_nameLabelRight->text());
         m_tableRightView = new QTableWidget();
-        QTableView * temp = static_cast<QTableView *>(m_tableRightView);
-        m_tableLeft->setView(temp);
         m_tablesLayout->insertWidget(1, m_tableRightView);
         m_nameLabelRight->setText("");
         m_isTableRightSet = false;

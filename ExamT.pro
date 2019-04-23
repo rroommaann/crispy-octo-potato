@@ -34,3 +34,7 @@ HEADERS += \
     comparedbs.h \
     multihashofrecords.h \
     mytable.h
+
+RESOURCES +=
+
+win32:RC_FILE += icon.rc
