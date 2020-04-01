@@ -24,12 +24,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
+    formstations.cpp \
         main.cpp \
         widget.cpp \
     multihashofrecords.cpp \
     mytable.cpp
 
 HEADERS += \
+    formstations.h \
         widget.h \
     comparedbs.h \
     multihashofrecords.h \
@@ -38,3 +40,6 @@ HEADERS += \
 RESOURCES +=
 
 win32:RC_FILE += icon.rc
+
+FORMS += \
+    formstations.ui

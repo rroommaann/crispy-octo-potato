@@ -6,7 +6,7 @@ MyTable::MyTable(QString tableName, QWidget *parent)
     m_nameDB = tableName;
     {
         QSqlDatabase db = QSqlDatabase::addDatabase("QODBC", m_nameDB);
-        db.setDatabaseName("DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};FIL={MS Access};DBQ=" + tableName);
+        db.setDatabaseName("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=" + tableName);
         db.setUserName("Admin");
         db.setPassword("64465");
         db.open();

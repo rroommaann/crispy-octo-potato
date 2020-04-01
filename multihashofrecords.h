@@ -16,29 +16,6 @@ public:
     ~MultiHashOfRecords();
     QMultiHash<QString, QSqlRecord>* getMassive();
 
-    static int* getMaxParameters(QSqlRelationalTableModel* model){
-        int* tempMass = new int[3];
-        int maxModule = 0;
-        int maxI = 0;
-        int maxJ = 0;
-        int rowCountOfModel = model->rowCount();
-        for(int i = 0; i < rowCountOfModel; i++){
-            if (model->record(i).field("Module").value().toInt() > maxModule){
-                maxModule = model->record(i).field("Module").value().toInt();
-            }
-            if (model->record(i).field("I").value().toInt() > maxI){
-                maxI = model->record(i).field("I").value().toInt();
-            }
-            if (model->record(i).field("J").value().toInt() > maxJ){
-                maxJ = model->record(i).field("J").value().toInt();
-            }
-        }
-        tempMass[0] = ++maxModule;
-        tempMass[1] = ++maxI;
-        tempMass[2] = ++maxJ;
-        return tempMass;
-    }
-
 private:
     QMultiHash <QString, QSqlRecord>* m_multiHash;
 };
