@@ -275,22 +275,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>pushButton_5</sender>
-   <signal>clicked()</signal>
-   <receiver>Widget</receiver>
-   <slot>setIsCompared()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>767</x>
-     <y>645</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>512</x>
-     <y>631</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>tableWidget</sender>
    <signal>itemDoubleClicked(QTableWidgetItem*)</signal>
    <receiver>Widget</receiver>
