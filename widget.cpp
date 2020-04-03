@@ -1,13 +1,15 @@
 #include "widget.h"
-#include "multihashofrecords.h"
-#include "comparedbs.h"
+#include "ui_widget.h"
 
+#include "globalFunctionsQT.h"
 
 using namespace std;
 
 Widget::Widget(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent),
+    ui(new Ui::Widget)
 {
+    ui->setupUi(this);
     setMinimumSize(800,600);
     initialize();
 }
@@ -20,130 +22,43 @@ void Widget::initialize(){
     QColor color = "#86FA69";
     m_brushGreen.setColor(color);
 
-    m_resetButton = new QPushButton(tr("Reset"));
-    connect(m_resetButton, SIGNAL(clicked()), this, SLOT (reset()));
-
-    m_stationsButton = new QPushButton(tr("Выбрать колонок для сравнения"));
-    connect(m_stationsButton, SIGNAL(clicked()), this, SLOT (openColumns()));
-
     form = new FormStations(QStringList());
 
-    m_openButtonLeft = new QPushButton(tr("Open"), this);
-    m_openButtonLeft->setObjectName("openButton1");
-    m_openButtonRight = new QPushButton(tr("Open"), this);
-    m_openButtonRight->setObjectName("openButton2");
-
-    m_closeButtonLeft = new QPushButton(tr("Close DB"), this);
-    m_closeButtonLeft->setObjectName("closeButton1");
-    m_closeButtonRight = new QPushButton(tr("Close DB"), this);
-    m_closeButtonRight->setObjectName("closeButton2");
-
-    m_compareButton = new QPushButton(tr("Compare"), this);
-
-    connect(m_openButtonLeft, SIGNAL(clicked()), this, SLOT (open()));
-    connect(m_openButtonRight, SIGNAL(clicked()), this, SLOT (open()));
-
-    connect(m_closeButtonLeft, SIGNAL(clicked()), this, SLOT (close()));
-    connect(m_closeButtonRight, SIGNAL(clicked()), this, SLOT (close()));
-
-    connect(m_compareButton, SIGNAL(clicked()), this, SLOT (compareDBs()));
-    connect(m_compareButton, SIGNAL(clicked()), this, SLOT (setIsCompared()));
-
-    m_tableLeft = new MyTable();
-    m_tableRight = new MyTable();
-    m_tableLeftView = static_cast<QTableWidget *>(m_tableLeft->getView());
-    m_tableRightView = static_cast<QTableWidget *>(m_tableRight->getView());
-
-    m_nameLabelLeft = new QLabel(this);
-    m_nameLabelLeft->setObjectName("nameLabel1");
-    m_nameLabelLeft->setWordWrap(true);
-
-    m_nameLabelRight = new QLabel(this);
-    m_nameLabelRight->setObjectName("nameLabel2");
-    m_nameLabelRight->setWordWrap(true);
-
-    m_buttonLayout = new QHBoxLayout();
-    m_buttonLayout->addWidget(m_openButtonLeft);
-    m_buttonLayout->addWidget(m_closeButtonLeft);
-    m_buttonLayout->addSpacing(20);
-    m_buttonLayout->addWidget(m_openButtonRight);
-    m_buttonLayout->addWidget(m_closeButtonRight);
-
-    m_mainLayout = new QVBoxLayout(this);
-    m_tablesLayout = new QHBoxLayout();
-    m_labelLayout = new QHBoxLayout();
-    m_labelLayoutLeft = new QHBoxLayout();
-    m_labelLayoutRight = new QHBoxLayout();
-
-    m_labelLayoutLeft->addWidget(m_nameLabelLeft);
-    m_labelLayoutRight->addWidget(m_nameLabelRight);
-    m_labelLayout->addLayout(m_labelLayoutLeft);
-    m_labelLayout->addSpacing(20);
-    m_labelLayout->addLayout(m_labelLayoutRight);
-
-    m_mainLayout->addLayout(m_buttonLayout);
-    m_mainLayout->addWidget(m_compareButton);
-    m_mainLayout->addWidget(m_resetButton);
-    m_mainLayout->addWidget(m_stationsButton);
-    m_mainLayout->addLayout(m_labelLayout);
-    m_mainLayout->addLayout(m_tablesLayout);
-    setLayout(m_mainLayout);
+    connect(ui->tableWidget->verticalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget_2->verticalScrollBar(), SLOT(setValue(int)));
+    connect(ui->tableWidget_2->verticalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget->verticalScrollBar(), SLOT(setValue(int)));
+    connect(ui->tableWidget->horizontalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget_2->horizontalScrollBar(), SLOT(setValue(int)));
+    connect(ui->tableWidget_2->horizontalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget->horizontalScrollBar(), SLOT(setValue(int)));
 }
 
-void Widget::compareDBs(){
+void Widget::compareDBs()
+{
 
-    if (!(m_isTableLeftSet && m_isTableRightSet) && !(m_item1 && m_item2)){
-        return;
-    }
-
-    if((m_item1 && m_item2) && (m_item1->text() != m_item2->text()))
+    if (!(m_tableLeft->isReady() && m_tableRight->isReady()))
     {
-        QMessageBox::critical (this, tr("Ошибка"), tr("Выбраны разные станции!"));
         return;
     }
 
-    QSqlRelationalTableModel* model1 = m_tableLeft->getModel();
-    QSqlRelationalTableModel* model2 = m_tableRight->getModel();
+    if(m_item1 && m_item2)
+    {
+        if(m_item1->text() != m_item2->text())
+        {
+            QMessageBox::critical (this, tr("Ошибка"), tr("Выбраны разные станции!"));
+            return;
+        }
+    }
+    else
+    {
+        return;
+    }
 
-    QVector<QTableWidget*>* vector = new QVector<QTableWidget*>(2);
+    m_tableLeft->createNewHashData(form->getListofColumns(), selectedType);
+    m_tableRight->createNewHashData(form->getListofColumns(), selectedType);
 
-    vector = compareDbs(model1, model2, form->getListofColumns());
-
-    m_tablesLayout->removeWidget(m_tableLeftView);
-    m_tablesLayout->removeWidget(m_tableRightView);
-    m_tableLeftView->setParent(nullptr);
-    m_tableRightView->setParent(nullptr);
-    m_tableLeftView->deleteLater();
-    m_tableRightView->deleteLater();
-
-    m_tableLeftView = vector->value(0);
-    m_tableRightView = vector->value(1);
-
-    QTableView* temp = static_cast<QTableView *>(m_tableLeftView);
-    m_tableLeft->setView(temp);
-
-    temp = static_cast<QTableView *>(m_tableRightView);
-    m_tableRight->setView(temp);
-
-    m_tableLeftView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_tableLeftView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    m_tableRightView->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_tableRightView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-    m_tablesLayout->insertWidget(0, m_tableLeftView);
-    m_tablesLayout->insertWidget(1, m_tableRightView);
-
-    connect(m_tableLeftView->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightView->verticalScrollBar(), SLOT(setValue(int)));
-    connect(m_tableRightView->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->verticalScrollBar(), SLOT(setValue(int)));
-    connect(m_tableLeftView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightView->horizontalScrollBar(), SLOT(setValue(int)));
-    connect(m_tableRightView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->horizontalScrollBar(), SLOT(setValue(int)));
-    connect(m_tableLeftView, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(doubleClickedTableLeftItem(QTableWidgetItem *)));
-    connect(m_tableRightView, SIGNAL(itemDoubleClicked(QTableWidgetItem *)), this, SLOT(doubleClickedTableRightItem(QTableWidgetItem *)));
-    delete vector;
+    compareDbs(m_tableLeft->getHash(), m_tableRight->getHash(), ui->tableWidget, ui->tableWidget_2, selectedType, form->getListofColumns());
 }
 
-void Widget::setIsCompared(){
+void Widget::setIsCompared()
+{
     m_isCompared = true;
 }
 
@@ -166,79 +81,47 @@ void Widget::open()
     }
 }
 
-void Widget::close()
+void Widget::reset()
 {
-    if (m_isCompared) reset();
-    QObject *obj = QObject::sender();
-    QString q = obj->objectName();
-    if (q == "closeButton1" && m_nameLabelLeft->text() != ""){
-        m_tablesLayout->takeAt(0);
-        delete m_tableLeftView;
-        delete m_tableLeft->getModel();
-        QSqlDatabase::database(m_nameLabelLeft->text()).close();
-        QSqlDatabase::removeDatabase(m_nameLabelLeft->text());
-        m_tableLeftView = new QTableWidget();
-        m_tablesLayout->insertWidget(0, m_tableLeftView);
-        m_nameLabelLeft->setText("");
-        m_isTableLeftSet = false;
-        m_item1 = nullptr;
-    }
-    else if (q == "closeButton2" && m_nameLabelRight->text() != "")
+    if(m_tableLeft)
     {
-        m_tablesLayout->takeAt(1);
-        delete m_tableRightView;
-        delete m_tableRight->getModel();
-        QSqlDatabase::database(m_nameLabelRight->text()).close();
-        QSqlDatabase::removeDatabase(m_nameLabelRight->text());
-        m_tableRightView = new QTableWidget();
-        m_tablesLayout->insertWidget(1, m_tableRightView);
-        m_nameLabelRight->setText("");
-        m_isTableRightSet = false;
-        m_item2 = nullptr;
+        m_tableLeft->resetTable();
     }
-    if ((m_isTableLeftSet == false) && (m_isTableRightSet == false)){
-        delete m_tableLeftView;
-        delete m_tableRightView;
+    if(m_tableRight)
+    {
+        m_tableRight->resetTable();
     }
+    m_item1 = nullptr;
+    m_item2 = nullptr;
+    ui->comboBox->setCurrentIndex(0);
 }
 
-void Widget::reset(){
-
-    if (!(m_isTableLeftSet && m_isTableRightSet))
+QStringList Widget::getListOfColumns()
+{
+    QString queryStr = "";
+    if(selectedType == TS)
     {
-        return;
+        queryStr = "SELECT * FROM TS;";
     }
-    else if(m_isTableLeftSet && m_isTableRightSet)
+    else if (selectedType == TU)
     {
-        m_tableLeftView->deleteLater();
-        m_tableRightView->deleteLater();
-        m_item1 = nullptr;
-        m_item2 = nullptr;
-        delete m_tableRight->getModel();
-        delete m_tableLeft->getModel();
-        QStringList list =  QSqlDatabase::connectionNames();
-        for(int i = 0; i < list.size(); i++)
+        queryStr = "SELECT * FROM TU;";
+    }
+    else if(selectedType == Stations)
+    {
+        QStringList listFinal;
+        for (auto s : m_tableLeft->getHash().getColumns())
         {
-            QSqlDatabase::removeDatabase(list[i]);
+            if(m_tableRight->getHash().getColumns().contains(s))
+            {
+                listFinal.append(s);
+            }
         }
-        m_isTableLeftSet = false;
-        m_isTableRightSet = false;
-        QString name1 = m_nameLabelLeft->text();
-        QString name2 = m_nameLabelRight->text();
-        m_nameLabelLeft->setText("");
-        m_nameLabelRight->setText("");
-        setTable(name1, "openButton1");
-        setTable(name2, "openButton2");
-        m_isCompared = false;
-        return;
+        return listFinal;
     }
-}
 
-void Widget::openColumns()
-{
-    QSqlRelationalTableModel* model1 = m_tableLeft->getModel();
-    QSqlQuery query1(model1->database());
-    query1.exec("SELECT * FROM TS");
+    QSqlQuery query1(getDb(m_tableLeft->getNameDB()));
+    query1.exec(queryStr);
     query1.next();
     QStringList listOfStations1;
     int i = 0;
@@ -248,9 +131,8 @@ void Widget::openColumns()
         i++;
     }
 
-    QSqlRelationalTableModel* model2 = m_tableRight->getModel();
-    QSqlQuery query2(model2->database());
-    query2.exec("SELECT * FROM TS");
+    QSqlQuery query2(getDb(m_tableRight->getNameDB()));
+    query2.exec(queryStr);
     query2.next();
     QStringList listOfStations2;
     i = 0;
@@ -268,92 +150,114 @@ void Widget::openColumns()
             listFinal.append(s);
         }
     }
+    return listFinal;
+}
 
-    form->updateWidget(listFinal);
+void Widget::openColumns()
+{
     form->show();
 }
 
-void Widget::setTable(QString name, QString q){
-    if(name == m_nameLabelRight->text() || name == m_nameLabelLeft->text()){
+void Widget::setTable(QString name, QString q)
+{
+    if(name == ui->labelLeft->text() || name == ui->labelRight->text())
+    {
         QMessageBox::critical (this, tr("Ошибка"), tr("Выбранная база уже открыта!!"));
         return;
     }
-    if (q == "openButton1"){
-        if (m_isTableLeftSet) emit m_closeButtonLeft->clicked(true);
-        m_tableLeft = new MyTable(name);
-        QLayoutItem *item = m_tablesLayout->itemAt(1);
-        if (!item){
-            m_tableRightView = new QTableWidget();
-            m_tablesLayout->insertWidget(1, m_tableRightView);
-            m_nameLabelRight->setText("");
-            m_isTableRightSet = false;
-            m_item2 = nullptr;
-        } else {
-            m_tablesLayout->removeWidget(m_tableLeftView);
-            m_tableLeftView->deleteLater();
+
+    if (q == "openButton1")
+    {
+        if(m_tableLeft)
+        {
+            delete m_tableLeft;
         }
-        m_tableLeftView = static_cast<QTableWidget *>(m_tableLeft->getView());
-        m_tablesLayout->insertWidget(0, m_tableLeftView);
-        m_nameLabelLeft->setText(name);
-        m_isTableLeftSet = true;
+        m_tableLeft = new MyTable(name);
+        m_tableLeft->setTable(ui->tableWidget);
+        ui->labelLeft->setText(name);
     }
     else
     {
-       if (m_isTableRightSet) emit m_closeButtonRight->clicked(true);
-        m_tableRight = new MyTable(name);
-        QLayoutItem *item = m_tablesLayout->itemAt(0);
-        if (!item){
-            m_tableLeftView = new QTableWidget();
-            m_tablesLayout->insertWidget(0, m_tableLeftView);
-            m_nameLabelLeft->setText("");
-            m_isTableLeftSet = false;
-            m_item1 = nullptr;
-        } else {
-            m_tablesLayout->removeWidget(m_tableRightView);
-            m_tableRightView->deleteLater();
+        if(m_tableRight)
+        {
+            delete m_tableRight;
         }
-        m_tableRightView = static_cast<QTableWidget *>(m_tableRight->getView());
-        m_tablesLayout->insertWidget(1, m_tableRightView);
-        m_nameLabelRight->setText(name);
-        m_isTableRightSet = true;
+        m_tableRight = new MyTable(name);
+        m_tableRight->setTable(ui->tableWidget_2);
+        ui->labelRight->setText(name);
     }
 
-    if (m_isTableLeftSet && m_isTableRightSet){
-        connect(m_tableLeftView->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightView->verticalScrollBar(), SLOT(setValue(int)));
-        connect(m_tableRightView->verticalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->verticalScrollBar(), SLOT(setValue(int)));
-        connect(m_tableLeftView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableRightView->horizontalScrollBar(), SLOT(setValue(int)));
-        connect(m_tableRightView->horizontalScrollBar(), SIGNAL (valueChanged(int)), m_tableLeftView->horizontalScrollBar(), SLOT(setValue(int)));
-        openColumns();
-        compareDBs();
+    if(m_tableLeft && m_tableRight)
+    {
+        if (m_tableLeft->isReady() && m_tableRight->isReady())
+        {
+            ui->comboBox->clear();
+            ui->comboBox->addItems(QStringList() << "Stations" << "TS" << "TU");
+            selectedType = Stations;
+            form->updateWidget(getListOfColumns());
+            form->on_pushButton_2_clicked();
+            compareDBs();
+
+            connect(ui->comboBox, QOverload<int, const QString&>::of(&QComboBox::currentIndexChanged), this, [=] (int index, QString table)
+                    {
+                        selectedType = (tableType)index;
+                        form->updateWidget(getListOfColumns());
+                    });
+        }
     }
 }
 
-void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item){
-    if((!m_item1) || (m_item1->background() != m_brushGreen)) {
+void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
+{
+    if(item->column() != 1)
+    {
+        return;
+    }
+    if((!m_item1) || (m_item1->background() != m_brushGreen))
+    {
         m_brush1 = item->background();
         item->setBackground(m_brushGreen);
+
         m_tableLeft->setStation(item->text());
+
         m_item1 = item;
-    } else if (m_item1->background() == m_brushGreen){
+    }
+    else if (m_item1->background() == m_brushGreen)
+    {
         m_item1->setBackground(m_brush1);
         m_brush1 = item->background();
         item->setBackground(m_brushGreen);
+
         m_tableLeft->setStation(item->text());
+
         m_item1 = item;
     }
     m_item1->setSelected(false);
 }
-void Widget::doubleClickedTableRightItem(QTableWidgetItem *item){
-    if((!m_item2) || (m_item2->background() != m_brushGreen)) {
+
+void Widget::doubleClickedTableRightItem(QTableWidgetItem *item)
+{
+    if(item->column() != 1)
+    {
+        return;
+    }
+    if((!m_item2) || (m_item2->background() != m_brushGreen))
+    {
         m_brush2 = item->background();
         item->setBackground(m_brushGreen);
+
         m_tableRight->setStation(item->text());
+
         m_item2 = item;
-    } else if (m_item2->background() == m_brushGreen){
+    }
+    else if (m_item2->background() == m_brushGreen)
+    {
         m_item2->setBackground(m_brush2);
         m_brush2 = item->background();;
         item->setBackground(m_brushGreen);
+
         m_tableRight->setStation(item->text());
+
         m_item2 = item;
     }
     m_item2->setSelected(false);
@@ -364,7 +268,8 @@ Widget::~Widget()
     delete m_tableRight;
     delete m_tableLeft;
     QStringList list =  QSqlDatabase::connectionNames();
-    for(int i = 0; i < list.size(); i++){
+    for(int i = 0; i < list.size(); i++)
+    {
         QSqlDatabase::removeDatabase(list[i]);
     }
 }

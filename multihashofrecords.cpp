@@ -1,22 +1,40 @@
 #include "multihashofrecords.h"
+#include <QSqlQuery>
 
-MultiHashOfRecords::MultiHashOfRecords(QSqlRelationalTableModel *model)
+MultiHashOfRecords::MultiHashOfRecords(QSqlQuery *query, QString key)
 {
     QSqlRecord record;
-    m_multiHash = new QMultiHash <QString, QSqlRecord>;
-    for(int k = 0; k < model->rowCount(); k++)
+    m_multiHash = new QMap <QString, QSqlRecord>;
+    int i = 0;
+    while(query->record().fieldName(i) != "")
     {
-        record = model->record(k);
-        QString s = record.field("NameTs").value().toString();
+        columns.append(query->record().fieldName(i));
+        i++;
+    }
+
+    while (query->next())
+    {
+        record = query->record();
+        QString s = record.field(key).value().toString();
         m_multiHash->insert(s, record);
     }
+}
+
+MultiHashOfRecords::MultiHashOfRecords()
+{
+
 }
 
 MultiHashOfRecords::~MultiHashOfRecords()
 {
 }
 
-QMultiHash<QString, QSqlRecord>* MultiHashOfRecords::getMassive()
+QMap<QString, QSqlRecord>* MultiHashOfRecords::getMassive()
 {
     return this->m_multiHash;
+}
+
+QStringList MultiHashOfRecords::getColumns() const
+{
+    return columns;
 }
