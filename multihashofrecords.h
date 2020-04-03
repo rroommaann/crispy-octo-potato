@@ -14,12 +14,12 @@ public:
     MultiHashOfRecords(QSqlQuery *query, QString key);
     MultiHashOfRecords();
     ~MultiHashOfRecords();
-    QMultiMap<QString, QSqlRecord> *getMassive();
+    QMap<QString, QSqlRecord>* getMassive();
 
     QStringList getColumns() const;
 
 private:
-    QMultiMap <QString, QSqlRecord>* m_multiHash;
+    QMap <QString, QSqlRecord>* m_multiHash;
     QStringList columns;
 };
 

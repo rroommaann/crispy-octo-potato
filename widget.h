@@ -66,6 +66,7 @@ private slots:
     void doubleClickedTableRightItem(QTableWidgetItem *item);
     void open();
     void compareDBs();
+    void setIsCompared();
     void reset();
     void openColumns();
 };

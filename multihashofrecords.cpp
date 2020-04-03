@@ -4,7 +4,7 @@
 MultiHashOfRecords::MultiHashOfRecords(QSqlQuery *query, QString key)
 {
     QSqlRecord record;
-    m_multiHash = new QMultiMap <QString, QSqlRecord>;
+    m_multiHash = new QMap <QString, QSqlRecord>;
     int i = 0;
     while(query->record().fieldName(i) != "")
     {
@@ -29,7 +29,7 @@ MultiHashOfRecords::~MultiHashOfRecords()
 {
 }
 
-QMultiMap<QString, QSqlRecord>* MultiHashOfRecords::getMassive()
+QMap<QString, QSqlRecord>* MultiHashOfRecords::getMassive()
 {
     return this->m_multiHash;
 }
