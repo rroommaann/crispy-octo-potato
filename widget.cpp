@@ -51,15 +51,20 @@ void Widget::compareDBs()
         return;
     }
 
+    if(m_isCompared)
+    {
+        return;
+    }
+
     m_tableLeft->createNewHashData(form->getListofColumns(), selectedType);
     m_tableRight->createNewHashData(form->getListofColumns(), selectedType);
 
     compareDbs(m_tableLeft->getHash(), m_tableRight->getHash(), ui->tableWidget, ui->tableWidget_2, selectedType, form->getListofColumns());
-}
 
-void Widget::setIsCompared()
-{
-    m_isCompared = true;
+    m_item1 = nullptr;
+    m_item2 = nullptr;
+    if(selectedType != Stations)
+        m_isCompared = true;
 }
 
 void Widget::open()
@@ -93,6 +98,7 @@ void Widget::reset()
     }
     m_item1 = nullptr;
     m_item2 = nullptr;
+    m_isCompared = false;
     ui->comboBox->setCurrentIndex(0);
 }
 
@@ -145,7 +151,7 @@ QStringList Widget::getListOfColumns()
     QStringList listFinal;
     for (auto s : listOfStations1)
     {
-        if(listOfStations2.contains(s))
+        if(listOfStations2.contains(s) && s != "Cod" && s != "NoSt")
         {
             listFinal.append(s);
         }
@@ -209,7 +215,7 @@ void Widget::setTable(QString name, QString q)
 
 void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
 {
-    if(item->column() != 1)
+    if((item->column() != 1) || m_isCompared)
     {
         return;
     }
@@ -237,7 +243,7 @@ void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
 
 void Widget::doubleClickedTableRightItem(QTableWidgetItem *item)
 {
-    if(item->column() != 1)
+    if((item->column() != 1) || m_isCompared)
     {
         return;
     }
