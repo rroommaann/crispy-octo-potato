@@ -32,7 +32,6 @@ SOURCES += \
 
 HEADERS += \
     formstations.h \
-    globalFunctionsQT.h \
         widget.h \
     comparedbs.h \
     multihashofrecords.h \
@@ -43,7 +42,4 @@ RESOURCES +=
 win32:RC_FILE += icon.rc
 
 FORMS += \
-    formstations.ui \
-    widget.ui
-
-DISTFILES +=
+    formstations.ui

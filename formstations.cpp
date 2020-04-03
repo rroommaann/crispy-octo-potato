@@ -12,11 +12,11 @@ void FormStations::updateWidget(QStringList list)
         }
     }
 
-    int c = 0;
-    int r = 0;
     listOfColumns.clear();
     for(auto columns : list)
     {
+        static int c = 0;
+        static int r = 0;
         QCheckBox *box = new QCheckBox(columns);
         ui->gridLayoutOfStations->addWidget(box, r, c++ % 3);
         listOfColumns.append(box);
@@ -47,7 +47,6 @@ FormStations::FormStations(QStringList list, QWidget *parent) :
     ui(new Ui::FormStations)
 {
     ui->setupUi(this);
-    setWindowFlags((Qt::WindowFlags)(Qt::WindowStaysOnTopHint | Qt::Dialog  | Qt::WindowCloseButtonHint));
 
     updateWidget(list);
 }
@@ -60,32 +59,4 @@ FormStations::~FormStations()
 void FormStations::on_pushButton_clicked()
 {
     this->hide();
-    emit ok();
-}
-
-void FormStations::on_pushButton_2_clicked()
-{
-    for(auto p : listOfColumns)
-    {
-        if(!p->isChecked())
-        {
-            p->setChecked(true);
-        }
-    }
-}
-
-void FormStations::on_pushButton_3_clicked()
-{
-    for(auto p : listOfColumns)
-    {
-        if(p->isChecked())
-        {
-            p->setChecked(false);
-        }
-    }
-}
-
-void FormStations::closeEvent(QCloseEvent *event)
-{
-    QWidget::closeEvent(event);
 }

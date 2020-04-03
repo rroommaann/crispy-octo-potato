@@ -11,16 +11,13 @@
 class MultiHashOfRecords
 {
 public:
-    MultiHashOfRecords(QSqlQuery *query, QString key);
+    MultiHashOfRecords(QSqlRelationalTableModel *model);
     MultiHashOfRecords();
     ~MultiHashOfRecords();
-    QMap<QString, QSqlRecord>* getMassive();
-
-    QStringList getColumns() const;
+    QMultiHash<QString, QSqlRecord>* getMassive();
 
 private:
-    QMap <QString, QSqlRecord>* m_multiHash;
-    QStringList columns;
+    QMultiHash <QString, QSqlRecord>* m_multiHash;
 };
 
 

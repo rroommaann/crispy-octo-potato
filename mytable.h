@@ -13,40 +13,24 @@
 #include <QMouseEvent>
 #include <QSqlRelationalDelegate>
 
-#include "multihashofrecords.h"
-#include "comparedbs.h"
-
 class MyTable : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit MyTable(QString dbName, QWidget *parent = nullptr);
+    explicit MyTable(QString tableName, QWidget *parent = nullptr);
     MyTable(QWidget *parent = nullptr);
+    QTableView * getView ();
+    QSqlRelationalTableModel *getModel();
     void setStation(QString q);
+    void setView(QTableView* &);
     ~MyTable();
-
-    MultiHashOfRecords getHash() const;
-
-    void setTable(QTableWidget *value);
-    QTableWidget *getTable() const;
-
-    bool isReady() const;
-
-    QString getNameDB() const;
-    void createNewHashData(QStringList listOfColumns, tableType type);
-
-    void resetTable();
 
 private:
     void setViewReady();
+    QSqlRelationalTableModel* m_model2;
+    QTableView* m_view;
     QString m_nameDB;
-    MultiHashOfRecords hash;
-    QTableWidget *table = nullptr;
-
-    bool ready = false;
-
-    QString choosedStation = "нет";
 };
 
 #endif

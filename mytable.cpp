@@ -1,111 +1,67 @@
 #include "mytable.h"
-#include "globalFunctionsQT.h"
 
-MyTable::MyTable(QString dbName, QWidget *parent)
+MyTable::MyTable(QString tableName, QWidget *parent)
     : QWidget(parent)
 {
-    m_nameDB = dbName;
-
-    QString q = "SELECT * "
-                "FROM Stations "
-                "ORDER BY NoSt ASC;";
-    QSqlQuery query(getDb(dbName, "64465"));
-    query.exec(q);
-    hash = MultiHashOfRecords(&query, "NoSt");
+    m_nameDB = tableName;
+    {
+        QSqlDatabase db = QSqlDatabase::addDatabase("QODBC", m_nameDB);
+        db.setDatabaseName("DRIVER={Microsoft Access Driver (*.mdb)};FIL={MS Access};DBQ=" + tableName);
+        db.setUserName("Admin");
+        db.setPassword("64465");
+        db.open();
+    }
+    m_model2 = new QSqlRelationalTableModel(this, QSqlDatabase::database(m_nameDB));
+    m_model2->setTable("Stations");
+    m_model2->select();
+    m_model2->setEditStrategy(QSqlTableModel::OnManualSubmit);
+    setViewReady();
+    while (m_model2->canFetchMore()){
+        m_model2->fetchMore();
+    }
 }
 
 MyTable::MyTable(QWidget *parent)
     : QWidget(parent)
 {
+    m_model2 = new QSqlRelationalTableModel(this);
+    m_view = new QTableView(this);
 }
 
-void MyTable::setViewReady()
-{
-    table->setColumnCount(hash.getColumns().count());
-    table->setHorizontalHeaderLabels(hash.getColumns());
-
-    for(auto record : hash.getMassive()->values())
-    {
-        table->setRowCount(table->rowCount() + 1);
-        int j = 0;
-        while(record.fieldName(j) != "")
-        {
-            QTableWidgetItem *item = new QTableWidgetItem(record.field(j).value().toString());
-
-            table->setItem(table->rowCount() - 1, j, item);
-            j++;
-        }
-    }
-    table->resizeColumnsToContents();
-    table->resizeRowsToContents();
-    ready = true;
+void MyTable::setViewReady(){
+    m_view = new QTableView(this);
+    m_view->horizontalHeader()->setSectionsMovable(true);
+    m_view->setModel(m_model2);
+    m_view->setItemDelegate(new QSqlRelationalDelegate(m_view));
+    m_view->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_view->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_view->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
-QString MyTable::getNameDB() const
-{
-    return m_nameDB;
-}
-
-void MyTable::createNewHashData(QStringList listOfColumns, tableType type)
-{
-    QSqlQuery query(getDb(m_nameDB, "64465"));
-    query.exec(prepareQuery(choosedStation, listOfColumns, type));
-    QString key;
-    if(type == TS)
-    {
-        key = "NameTs";
-    }
-    else if (type == TU)
-    {
-        key = "NameTu";
-    }
-    else if(type == Stations)
-    {
-        key = "NoSt";
-    }
-
-    hash = MultiHashOfRecords(&query, key);
-}
-
-void MyTable::resetTable()
-{
-    QString q = "SELECT * "
-                "FROM Stations "
-                "ORDER BY NoSt ASC;";
-    QSqlQuery query(getDb(m_nameDB, "64465"));
-    query.exec(q);
-
-    hash = MultiHashOfRecords(&query, "NoSt");
-    table->setRowCount(0);
+void MyTable::setStation(QString q){
+    m_model2->clear();
     setViewReady();
+    m_model2->setTable("TS");
+    m_model2->setRelation(0, QSqlRelation("Stations", "NoSt", "NameSt"));
+    m_model2->setRelation(1, QSqlRelation("TS_Name", "Cod", "NameTS"));
+    m_model2->setFilter("NameSt='"+q+"'");
+    m_model2->select();
+    while (m_model2->canFetchMore()){
+        m_model2->fetchMore();
+    }
 }
 
-bool MyTable::isReady() const
-{
-    return ready;
+QTableView* MyTable::getView(){
+    return m_view;
 }
 
-QTableWidget *MyTable::getTable() const
-{
-    return table;
+void MyTable::setView(QTableView* &tableView){
+    m_view = tableView;
 }
 
-void MyTable::setTable(QTableWidget *value)
-{
-    table = value;
-    setViewReady();
+QSqlRelationalTableModel* MyTable::getModel(){
+    return m_model2;
 }
 
-MultiHashOfRecords MyTable::getHash() const
-{
-    return hash;
-}
-
-void MyTable::setStation(QString q)
-{
-    choosedStation = q;
-}
-
-MyTable::~MyTable()
-{
+MyTable::~MyTable(){
 }
