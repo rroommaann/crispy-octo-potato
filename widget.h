@@ -14,7 +14,17 @@
 #include <QFile>
 #include <QTimer>
 
+#include "multihashofrecords.h"
+#include "comparedbs.h"
+
+#include <QSizePolicy>
+
 #include "formstations.h"
+
+
+namespace Ui {
+    class Widget;
+}
 
 class Widget : public QWidget
 {
@@ -24,42 +34,19 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
 
-private:
+    QStringList getListOfColumns();
 
-    boolean m_isTableLeftSet = false;
-    boolean m_isTableRightSet = false;
-    boolean m_isCompared = false;
+private:
+    Ui::Widget *ui;
+
+    bool m_isTableLeftSet = false;
+    bool m_isTableRightSet = false;
+    bool m_isCompared = false;
 
     void initialize ();
-    QBoxLayout* m_mainLayout = nullptr;
-    QList<QUrl>* m_filePath = nullptr;
-
-    QPushButton* m_openButtonLeft = nullptr;
-    QPushButton* m_openButtonRight = nullptr;;
-
-    QPushButton* m_closeButtonLeft = nullptr;
-    QPushButton* m_closeButtonRight = nullptr;
-
-    QPushButton* m_resetButton = nullptr;
-    QPushButton* m_stationsButton = nullptr;
-
-    QPushButton* m_compareButton = nullptr;
 
     MyTable* m_tableLeft = nullptr;
     MyTable* m_tableRight = nullptr;
-    QTableWidget* m_tableLeftView = nullptr;
-    QTableWidget* m_tableRightView = nullptr;
-
-    QLabel* m_nameLabelLeft = nullptr;
-    QLabel* m_nameLabelRight = nullptr;
-
-    QBoxLayout* m_buttonLayout = nullptr;
-    QBoxLayout* m_tablesLayout = nullptr;
-    QBoxLayout* m_labelLayout = nullptr;
-    QBoxLayout* m_labelLayoutLeft = nullptr;
-    QBoxLayout* m_labelLayoutRight = nullptr;
-
-    QVector<QTableWidget*>* m_vector = nullptr;
 
     QTableWidgetItem* m_item1 = nullptr;
     QTableWidgetItem* m_item2 = nullptr;
@@ -67,6 +54,8 @@ private:
     QBrush m_brushGreen;
     QBrush m_brush1;
     QBrush m_brush2;
+
+    tableType selectedType = TS;
 
     FormStations *form = nullptr;
 
@@ -76,7 +65,6 @@ private slots:
     void doubleClickedTableLeftItem(QTableWidgetItem *item);
     void doubleClickedTableRightItem(QTableWidgetItem *item);
     void open();
-    void close();
     void compareDBs();
     void setIsCompared();
     void reset();
