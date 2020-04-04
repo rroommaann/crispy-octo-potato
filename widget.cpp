@@ -32,6 +32,10 @@ void Widget::initialize(){
 
 void Widget::compareDBs()
 {
+    if(!(m_tableLeft && m_tableRight))
+    {
+        return;
+    }
 
     if (!(m_tableLeft->isReady() && m_tableRight->isReady()))
     {
