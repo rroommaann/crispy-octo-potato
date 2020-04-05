@@ -25,25 +25,25 @@ static QString prepareQuery(QString stationName, QStringList list, tableType typ
     QString query;
     if(type == TS)
     {
-        query = "SELECT Stations.NameSt, TS_Name.NameTs";
+        query = "SELECT [Stations.NameSt], [TS_Name.NameTs";
         for(auto column : list)
         {
-            QString temp = ", TS.";
+            QString temp = "], [TS.";
             temp.append(column);
             query.append(temp);
         }
-        query.append(" FROM TS, TS_Name, Stations WHERE Stations.NameSt='"+stationName+"' AND TS.Cod=TS_Name.Cod AND TS.NoSt=Stations.NoSt ORDER BY TS_Name.NameTs ASC;");
+        query.append("] FROM TS, TS_Name, Stations WHERE Stations.NameSt='"+stationName+"' AND TS.Cod=TS_Name.Cod AND TS.NoSt=Stations.NoSt ORDER BY TS_Name.NameTs ASC;");
     }
     else if (type == TU)
     {
-        query = "SELECT Stations.NameSt, TU_Name.NameTu";
+        query = "SELECT [Stations.NameSt], [TU_Name.NameTu";
         for(auto column : list)
         {
-            QString temp = ", TU.";
+            QString temp = "], [TU.";
             temp.append(column);
             query.append(temp);
         }
-        query.append(" FROM TU, TU_Name, Stations"
+        query.append("] FROM TU, TU_Name, Stations"
                      " WHERE Stations.NameSt='"+stationName+"' AND TU.Cod=TU_Name.Cod AND TU.NoSt=Stations.NoSt"
                      " ORDER BY TU_Name.NameTu ASC;");
     }
@@ -53,7 +53,6 @@ static QString prepareQuery(QString stationName, QStringList list, tableType typ
                 "FROM Stations "
                 "ORDER BY NoSt ASC;";
     }
-    qDebug() << query;
     return query;
 }
 
@@ -129,7 +128,6 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
                     QTableWidgetItem *newItem2 = new QTableWidgetItem(record.field(fieldName).value().toString(),0);
                     newItem1->setBackground(brush);
                     newItem2->setBackground(brush);
-                    qDebug() << "1";
                     table1->setItem(rows-1,col, newItem1);
                     table2->setItem(rows-1,col, newItem2);
                 }
@@ -148,7 +146,6 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
                     QTableWidgetItem *newItem2 = new QTableWidgetItem("*", 0);
                     newItem1->setBackground(brush);
                     newItem2->setBackground(brush);
-                    qDebug() << "2";
                     table1->setItem(rows-1,col, newItem1);
                     table2->setItem(rows-1,col, newItem2);
                 }

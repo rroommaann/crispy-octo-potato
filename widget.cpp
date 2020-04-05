@@ -22,7 +22,9 @@ void Widget::initialize(){
     QColor color = "#86FA69";
     m_brushGreen.setColor(color);
 
-    form = new FormStations(QStringList());
+    form = new FormColumns(QStringList());
+
+    comboBox = form->getComboBox();
 
     connect(ui->tableWidget->verticalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget_2->verticalScrollBar(), SLOT(setValue(int)));
     connect(ui->tableWidget_2->verticalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget->verticalScrollBar(), SLOT(setValue(int)));
@@ -103,7 +105,7 @@ void Widget::reset()
     m_item1 = nullptr;
     m_item2 = nullptr;
     m_isCompared = false;
-    ui->comboBox->setCurrentIndex(0);
+    comboBox->setCurrentIndex(0);
 }
 
 QStringList Widget::getListOfColumns()
@@ -201,14 +203,14 @@ void Widget::setTable(QString name, QString q)
     {
         if (m_tableLeft->isReady() && m_tableRight->isReady())
         {
-            ui->comboBox->clear();
-            ui->comboBox->addItems(QStringList() << "Stations" << "TS" << "TU");
+            comboBox->clear();
+            comboBox->addItems(QStringList() << "Stations" << "TS" << "TU");
             selectedType = Stations;
             form->updateWidget(getListOfColumns());
             form->on_pushButton_2_clicked();
             compareDBs();
 
-            connect(ui->comboBox, QOverload<int, const QString&>::of(&QComboBox::currentIndexChanged), this, [=] (int index, QString table)
+            connect(comboBox, QOverload<int, const QString&>::of(&QComboBox::currentIndexChanged), this, [=] (int index)
                     {
                         selectedType = (tableType)index;
                         form->updateWidget(getListOfColumns());

@@ -3,21 +3,24 @@
 
 #include <QWidget>
 #include <QCheckBox>
+#include <QComboBox>
 
 
 namespace Ui {
 class FormStations;
 }
 
-class FormStations : public QWidget
+class FormColumns : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit FormStations(QStringList list, QWidget *parent = nullptr);
-    ~FormStations();
+    explicit FormColumns(QStringList list, QWidget *parent = nullptr);
+    ~FormColumns();
     void updateWidget(QStringList list);
     QStringList getListofColumns() const;
+
+    QComboBox *getComboBox();
 public slots:
     void on_pushButton_2_clicked();
 

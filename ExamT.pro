@@ -24,14 +24,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += \
-    formstations.cpp \
+    formcolumns.cpp \
         main.cpp \
         widget.cpp \
     multihashofrecords.cpp \
     mytable.cpp
 
 HEADERS += \
-    formstations.h \
+    formcolumns.h \
     globalFunctionsQT.h \
         widget.h \
     comparedbs.h \
@@ -43,7 +43,7 @@ RESOURCES +=
 win32:RC_FILE += icon.rc
 
 FORMS += \
-    formstations.ui \
+    formcolumns.ui \
     widget.ui
 
 DISTFILES +=

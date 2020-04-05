@@ -19,7 +19,7 @@
 
 #include <QSizePolicy>
 
-#include "formstations.h"
+#include "formcolumns.h"
 
 
 namespace Ui {
@@ -57,7 +57,8 @@ private:
 
     tableType selectedType = TS;
 
-    FormStations *form = nullptr;
+    FormColumns *form = nullptr;
+    QComboBox *comboBox = nullptr;
 
     void setTable(QString name, QString q);
 

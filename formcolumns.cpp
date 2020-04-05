@@ -1,6 +1,6 @@
-#include "formstations.h"
-#include "ui_formstations.h"
-void FormStations::updateWidget(QStringList list)
+#include "formcolumns.h"
+#include "ui_formcolumns.h"
+void FormColumns::updateWidget(QStringList list)
 {
     if (ui->gridLayoutOfStations)
     {
@@ -27,7 +27,7 @@ void FormStations::updateWidget(QStringList list)
     }
 }
 
-QStringList FormStations::getListofColumns() const
+QStringList FormColumns::getListofColumns() const
 {
     QStringList list;
 
@@ -42,7 +42,12 @@ QStringList FormStations::getListofColumns() const
     return list;
 }
 
-FormStations::FormStations(QStringList list, QWidget *parent) :
+QComboBox *FormColumns::getComboBox()
+{
+    return ui->comboBox;
+}
+
+FormColumns::FormColumns(QStringList list, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FormStations)
 {
@@ -52,18 +57,18 @@ FormStations::FormStations(QStringList list, QWidget *parent) :
     updateWidget(list);
 }
 
-FormStations::~FormStations()
+FormColumns::~FormColumns()
 {
     delete ui;
 }
 
-void FormStations::on_pushButton_clicked()
+void FormColumns::on_pushButton_clicked()
 {
     this->hide();
     emit ok();
 }
 
-void FormStations::on_pushButton_2_clicked()
+void FormColumns::on_pushButton_2_clicked()
 {
     for(auto p : listOfColumns)
     {
@@ -74,7 +79,7 @@ void FormStations::on_pushButton_2_clicked()
     }
 }
 
-void FormStations::on_pushButton_3_clicked()
+void FormColumns::on_pushButton_3_clicked()
 {
     for(auto p : listOfColumns)
     {
@@ -85,7 +90,7 @@ void FormStations::on_pushButton_3_clicked()
     }
 }
 
-void FormStations::closeEvent(QCloseEvent *event)
+void FormColumns::closeEvent(QCloseEvent *event)
 {
     QWidget::closeEvent(event);
 }
