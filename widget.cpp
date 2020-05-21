@@ -119,6 +119,10 @@ QStringList Widget::getListOfColumns()
     {
         queryStr = "SELECT * FROM TU;";
     }
+    else if (selectedType == RouteSrc)
+    {
+        queryStr = "SELECT * FROM RouteSrc;";
+    }
     else if(selectedType == Stations)
     {
         QStringList listFinal;
@@ -204,7 +208,7 @@ void Widget::setTable(QString name, QString q)
         if (m_tableLeft->isReady() && m_tableRight->isReady())
         {
             comboBox->clear();
-            comboBox->addItems(QStringList() << "Stations" << "TS" << "TU");
+            comboBox->addItems(QStringList() << "Stations" << "TS" << "TU" << "RouteSrc");
             selectedType = Stations;
             form->updateWidget(getListOfColumns());
             form->on_pushButton_2_clicked();
@@ -221,7 +225,7 @@ void Widget::setTable(QString name, QString q)
 
 void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
 {
-    if((item->column() != 1) || m_isCompared)
+    if((ui->tableWidget->horizontalHeaderItem(item->column())->data(Qt::DisplayRole).toString() != "NameSt") || m_isCompared)
     {
         return;
     }
@@ -249,7 +253,7 @@ void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
 
 void Widget::doubleClickedTableRightItem(QTableWidgetItem *item)
 {
-    if((item->column() != 1) || m_isCompared)
+    if((ui->tableWidget_2->horizontalHeaderItem(item->column())->data(Qt::DisplayRole).toString() != "NameSt") || m_isCompared)
     {
         return;
     }

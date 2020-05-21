@@ -63,6 +63,10 @@ void MyTable::createNewHashData(QStringList listOfColumns, tableType type)
     {
         key = "NoSt";
     }
+    else if (type == RouteSrc)
+    {
+        key = "No";
+    }
 
     hash = MultiHashOfRecords(&query, key);
 }

@@ -17,6 +17,7 @@ enum tableType
     def = 0,
     TS = 1,
     TU = 2,
+    RouteSrc = 3,
     Stations = 10,
 };
 
@@ -32,7 +33,9 @@ static QString prepareQuery(QString stationName, QStringList list, tableType typ
             temp.append(column);
             query.append(temp);
         }
-        query.append("] FROM TS, TS_Name, Stations WHERE Stations.NameSt='"+stationName+"' AND TS.Cod=TS_Name.Cod AND TS.NoSt=Stations.NoSt ORDER BY TS_Name.NameTs ASC;");
+        query.append("] FROM TS, TS_Name, Stations"
+                     " WHERE Stations.NameSt='"+stationName+"' AND TS.Cod=TS_Name.Cod AND TS.NoSt=Stations.NoSt"
+                     " ORDER BY [TS_Name.NameTs] ASC;");
     }
     else if (type == TU)
     {
@@ -45,13 +48,26 @@ static QString prepareQuery(QString stationName, QStringList list, tableType typ
         }
         query.append("] FROM TU, TU_Name, Stations"
                      " WHERE Stations.NameSt='"+stationName+"' AND TU.Cod=TU_Name.Cod AND TU.NoSt=Stations.NoSt"
-                     " ORDER BY TU_Name.NameTu ASC;");
+                     " ORDER BY [TU_Name.NameTu] ASC;");
     }
     else if(type == Stations)
     {
         query = "SELECT * "
                 "FROM Stations "
-                "ORDER BY NoSt ASC;";
+                "ORDER BY [NoSt] ASC;";
+    }
+    else if(type == RouteSrc)
+    {
+        query = "SELECT [Stations.NameSt";
+        for(auto column : list)
+        {
+            QString temp = "], [RouteSrc.";
+            temp.append(column);
+            query.append(temp);
+        }
+        query.append("] FROM RouteSrc, Stations"
+                     " WHERE Stations.NameSt='"+stationName+"' AND RouteSrc.NoSt=Stations.NoSt"
+                     " ORDER BY [No] ASC;");
     }
     return query;
 }
@@ -66,6 +82,10 @@ static QStringList prepareColumnsList (QStringList list, tableType type)
     else if (type == TU)
     {
         listOfColumns = QStringList{"NameSt","NameTu"};
+    }
+    else if (type == RouteSrc)
+    {
+        listOfColumns = QStringList{"NameSt"};
     }
     listOfColumns.append(list);
     return listOfColumns;
@@ -94,6 +114,8 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
 
     QStringList listOfColumns = prepareColumnsList(list, type);
 
+    qDebug() << listOfColumns;
+
     int columnCount = listOfColumns.count();
     table1->setColumnCount(columnCount);
     table2->setColumnCount(columnCount);
@@ -106,11 +128,7 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
     table1->setHorizontalHeaderLabels(listOfColumns);
     table2->setHorizontalHeaderLabels(listOfColumns);
 
-
-    QStringList keys1 = massiveOfRecors1.getMassive()->keys();
-    QStringList keys2 = massiveOfRecors2.getMassive()->keys();
-
-    for(auto key : keys1)
+    for(auto key : massiveOfRecors1.getMassive()->keys())
     {
         QList<QSqlRecord> list1 = massiveOfRecors1.getMassive()->values(key);
         QList<QSqlRecord> list2 = massiveOfRecors2.getMassive()->values(key);
@@ -224,9 +242,9 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
         }
     }
 
-    for(auto key : keys2)
+    for(auto key : massiveOfRecors2.getMassive()->keys())
     {
-        if(!keys1.contains(key))
+        if(!massiveOfRecors1.getMassive()->keys().contains(key))
         {
             QList<QSqlRecord> list1 = massiveOfRecors1.getMassive()->values(key);
             QList<QSqlRecord> list2 = massiveOfRecors2.getMassive()->values(key);

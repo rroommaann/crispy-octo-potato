@@ -16,10 +16,10 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Widget</string>
+   <string>EXAM</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0" rowspan="5" colspan="2">
+   <item row="0" column="0" rowspan="5" colspan="4">
     <layout class="QGridLayout" name="gridLayout_2" rowstretch="0,0,0">
      <item row="0" column="0" colspan="3">
       <layout class="QHBoxLayout" name="horizontalLayout">
@@ -104,19 +104,78 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
+         <property name="toolTip">
+          <string>Выбор таблицы для сравнения</string>
+         </property>
          <property name="text">
-          <string>Выбор </string>
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/images/open_view.png</normaloff>:/images/open_view.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>26</width>
+           <height>26</height>
+          </size>
          </property>
         </widget>
        </item>
-       <item row="0" column="0" rowspan="4">
+       <item row="0" column="0" rowspan="5">
         <widget class="QTableWidget" name="tableWidget">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
         </widget>
        </item>
+       <item row="0" column="2" rowspan="5">
+        <widget class="QTableWidget" name="tableWidget_2">
+         <property name="editTriggers">
+          <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+        </widget>
+       </item>
        <item row="3" column="1">
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>1</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="pushButton_7">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="toolTip">
+          <string>Вернуться к выбору станции</string>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/images/restore.png</normaloff>:/images/restore.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>26</width>
+           <height>26</height>
+          </size>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
         <widget class="QPushButton" name="pushButton_5">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -124,51 +183,31 @@
            <verstretch>0</verstretch>
           </sizepolicy>
          </property>
-         <property name="minimumSize">
-          <size>
-           <width>50</width>
-           <height>50</height>
-          </size>
-         </property>
          <property name="font">
           <font>
            <pointsize>12</pointsize>
           </font>
          </property>
+         <property name="toolTip">
+          <string>Сравнить</string>
+         </property>
          <property name="layoutDirection">
           <enum>Qt::LeftToRight</enum>
          </property>
          <property name="text">
-          <string>Сравнить</string>
+          <string/>
          </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="pushButton_7">
-         <property name="text">
-          <string>Вернуться</string>
+         <property name="icon">
+          <iconset resource="resources.qrc">
+           <normaloff>:/images/compare.png</normaloff>:/images/compare.png</iconset>
          </property>
-        </widget>
-       </item>
-       <item row="0" column="2" rowspan="4">
-        <widget class="QTableWidget" name="tableWidget_2">
-         <property name="editTriggers">
-          <set>QAbstractItemView::NoEditTriggers</set>
-         </property>
-        </widget>
-       </item>
-       <item row="2" column="1">
-        <spacer name="verticalSpacer">
-         <property name="orientation">
-          <enum>Qt::Vertical</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
+         <property name="iconSize">
           <size>
-           <width>20</width>
-           <height>40</height>
+           <width>26</width>
+           <height>26</height>
           </size>
          </property>
-        </spacer>
+        </widget>
        </item>
       </layout>
      </item>
@@ -176,7 +215,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>pushButton_7</sender>

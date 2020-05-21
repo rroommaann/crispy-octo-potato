@@ -38,7 +38,8 @@ HEADERS += \
     multihashofrecords.h \
     mytable.h
 
-RESOURCES +=
+RESOURCES += \
+    resources.qrc
 
 win32:RC_FILE += icon.rc
 
@@ -46,4 +47,7 @@ FORMS += \
     formcolumns.ui \
     widget.ui
 
-DISTFILES +=
+DISTFILES += \
+    images/compare.png \
+    images/open_view.png \
+    images/restore.png

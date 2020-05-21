@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/open_view.png</file>
+        <file>images/restore.png</file>
+        <file>images/compare.png</file>
+    </qresource>
+</RCC>
