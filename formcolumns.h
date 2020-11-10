@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QSet>
 
 
 namespace Ui {
@@ -21,21 +22,26 @@ public:
     QStringList getListofColumns() const;
 
     QComboBox *getComboBox();
-public slots:
-    void on_pushButton_2_clicked();
 
 signals:
-    void ok();
+    void compare();
+
+public slots:
+    void on_pushButton_2_clicked();
+    void on_pushButton_3_clicked();
 
 private slots:
     void on_pushButton_clicked();
 
-    void on_pushButton_3_clicked();
+    void on_pushButton_4_clicked();
 
 private:
     Ui::FormStations *ui;
     QStringList list;
-    QList<QCheckBox*> listOfColumns;
+    QList<QCheckBox*> listOfCheckBoxes;
+    QHash<int, QSet<QString>> hashOfLastSelection;
+
+    void synchBoxes();
 
 protected:
     void closeEvent(QCloseEvent *event) override;

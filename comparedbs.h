@@ -18,7 +18,7 @@ enum tableType
     TS = 1,
     TU = 2,
     RouteSrc = 3,
-    Stations = 10,
+    Stations = 0,
 };
 
 static QString prepareQuery(QString stationName, QStringList list, tableType type)
@@ -164,8 +164,8 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
                     QTableWidgetItem *newItem2 = new QTableWidgetItem("*", 0);
                     newItem1->setBackground(brush);
                     newItem2->setBackground(brush);
-                    table1->setItem(rows-1,col, newItem1);
-                    table2->setItem(rows-1,col, newItem2);
+                    table1->setItem(rows - 1, col, newItem1);
+                    table2->setItem(rows - 1, col, newItem2);
                 }
             }
         } else if (list2.isEmpty() && list1.isEmpty())

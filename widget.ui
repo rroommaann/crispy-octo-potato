@@ -127,12 +127,24 @@
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
          </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
+         </property>
         </widget>
        </item>
        <item row="0" column="2" rowspan="5">
         <widget class="QTableWidget" name="tableWidget_2">
          <property name="editTriggers">
           <set>QAbstractItemView::NoEditTriggers</set>
+         </property>
+         <property name="selectionMode">
+          <enum>QAbstractItemView::SingleSelection</enum>
+         </property>
+         <property name="selectionBehavior">
+          <enum>QAbstractItemView::SelectRows</enum>
          </property>
         </widget>
        </item>
@@ -226,8 +238,8 @@
    <slot>reset()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>828</x>
-     <y>634</y>
+     <x>513</x>
+     <y>135</y>
     </hint>
     <hint type="destinationlabel">
      <x>863</x>
@@ -242,8 +254,8 @@
    <slot>openColumns()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>271</x>
-     <y>644</y>
+     <x>513</x>
+     <y>97</y>
     </hint>
     <hint type="destinationlabel">
      <x>593</x>
@@ -290,8 +302,8 @@
    <slot>compareDBs()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>746</x>
-     <y>646</y>
+     <x>513</x>
+     <y>173</y>
     </hint>
     <hint type="destinationlabel">
      <x>615</x>

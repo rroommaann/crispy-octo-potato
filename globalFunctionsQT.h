@@ -14,7 +14,7 @@ static QSqlDatabase getDb(QString dbPath, QString passwordForMdb = "64465")
     if(dbPath.contains(QRegularExpression(R"(.+\.mdb)")))
     {
         dbSql = QSqlDatabase::addDatabase("QODBC", dbPath);
-        dbSql.setDatabaseName("Driver={Microsoft Access Driver (*.mdb)};DSN='';DBQ=" + dbPath);
+        dbSql.setDatabaseName("Driver={Microsoft Access Driver (*.mdb, *.accdb)};DSN='';DBQ=" + dbPath);
         //        dbSql.setHostName("localhost");
         //        dbSql.setUserName("admin");
         dbSql.setPassword(passwordForMdb);

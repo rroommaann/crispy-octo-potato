@@ -3,8 +3,6 @@
 # Project created by QtCreator 2018-11-02T00:38:23
 #
 #-------------------------------------------------
-
-CONFIG += qt release
 QT     += core gui sql
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets

@@ -7,7 +7,7 @@ using namespace std;
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent),
-    ui(new Ui::Widget)
+      ui(new Ui::Widget)
 {
     ui->setupUi(this);
     setMinimumSize(800,600);
@@ -23,6 +23,7 @@ void Widget::initialize(){
     m_brushGreen.setColor(color);
 
     form = new FormColumns(QStringList());
+    connect(form, &FormColumns::compare, this, &Widget::compareDBs);
 
     comboBox = form->getComboBox();
 
@@ -54,10 +55,11 @@ void Widget::compareDBs()
     }
     else
     {
-        return;
+        if(selectedType != Stations)
+            return;
     }
 
-    if(m_isCompared)
+    if(m_isCompared && (selectedType != Stations))
     {
         return;
     }
@@ -71,6 +73,8 @@ void Widget::compareDBs()
     m_item2 = nullptr;
     if(selectedType != Stations)
         m_isCompared = true;
+    m_tableLeft->getTable()->resizeRowsToContents();
+    m_tableRight->getTable()->resizeRowsToContents();
 }
 
 void Widget::open()
@@ -105,7 +109,17 @@ void Widget::reset()
     m_item1 = nullptr;
     m_item2 = nullptr;
     m_isCompared = false;
-    comboBox->setCurrentIndex(0);
+    QTimer::singleShot(10, this, [=]
+    {
+        int index = comboBox->currentIndex();
+        comboBox->setCurrentIndex(0);
+        QTimer::singleShot(10, this, [=]
+        {
+            form->on_pushButton_2_clicked();
+            compareDBs();
+            comboBox->setCurrentIndex(index);
+        });
+    });
 }
 
 QStringList Widget::getListOfColumns()
@@ -125,15 +139,16 @@ QStringList Widget::getListOfColumns()
     }
     else if(selectedType == Stations)
     {
-        QStringList listFinal;
-        for (auto s : m_tableLeft->getHash().getColumns())
-        {
-            if(m_tableRight->getHash().getColumns().contains(s))
-            {
-                listFinal.append(s);
-            }
-        }
-        return listFinal;
+        queryStr = "SELECT * FROM Stations;";
+        //        QStringList listFinal;
+        //        for (auto s : m_tableLeft->getHash().getColumns())
+        //        {
+        //            if(m_tableRight->getHash().getColumns().contains(s))
+        //            {
+        //                listFinal.append(s);
+        //            }
+        //        }
+        //        return listFinal;
     }
 
     QSqlQuery query1(getDb(m_tableLeft->getNameDB()));
@@ -211,24 +226,39 @@ void Widget::setTable(QString name, QString q)
             comboBox->addItems(QStringList() << "Stations" << "TS" << "TU" << "RouteSrc");
             selectedType = Stations;
             form->updateWidget(getListOfColumns());
+
             form->on_pushButton_2_clicked();
             compareDBs();
+            form->on_pushButton_3_clicked();
 
-            connect(comboBox, QOverload<int, const QString&>::of(&QComboBox::currentIndexChanged), this, [=] (int index)
-                    {
-                        selectedType = (tableType)index;
-                        form->updateWidget(getListOfColumns());
-                    });
+            connect(comboBox, QOverload<const QString&>::of(&QComboBox::currentIndexChanged), this, [=] (QString string)
+            {
+                int index = comboBox->findText(string);
+                selectedType = (tableType)index;
+                form->updateWidget(getListOfColumns());
+            });
         }
     }
 }
 
 void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
 {
-    if((ui->tableWidget->horizontalHeaderItem(item->column())->data(Qt::DisplayRole).toString() != "NameSt") || m_isCompared)
-    {
+    if(m_isCompared)
         return;
+
+    int row = item->row();
+    int column = -1;
+    for(int i = 0; i < m_tableLeft->getTable()->horizontalHeader()->count(); ++i)
+    {
+        auto itemH = m_tableLeft->getTable()->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == "NameSt")
+            column = i;
     }
+    if(column == -1)
+        return;
+
+    item = m_tableLeft->getTable()->item(row, column);
+
     if((!m_item1) || (m_item1->background() != m_brushGreen))
     {
         m_brush1 = item->background();
@@ -249,14 +279,67 @@ void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
         m_item1 = item;
     }
     m_item1->setSelected(false);
+
+    int columnSecond = -1;
+    for(int i = 0; i < m_tableRight->getTable()->horizontalHeader()->count(); ++i)
+    {
+        auto itemH = m_tableRight->getTable()->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == "NameSt")
+            columnSecond = i;
+    }
+    if(columnSecond == -1)
+        return;
+
+    for(int i = 0; i < m_tableRight->getTable()->verticalHeader()->count(); ++i)
+    {
+       auto itemV = m_tableRight->getTable()->item(i, columnSecond);
+
+       if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
+       {
+           item = itemV;
+
+           if((!m_item2) || (m_item2->background() != m_brushGreen))
+           {
+               m_brush2 = item->background();
+               item->setBackground(m_brushGreen);
+
+               m_tableRight->setStation(item->text());
+
+               m_item2 = item;
+           }
+           else if (m_item2->background() == m_brushGreen)
+           {
+               m_item2->setBackground(m_brush2);
+               m_brush2 = item->background();;
+               item->setBackground(m_brushGreen);
+
+               m_tableRight->setStation(item->text());
+
+               m_item2 = item;
+           }
+           m_item2->setSelected(false);
+       }
+    }
 }
 
 void Widget::doubleClickedTableRightItem(QTableWidgetItem *item)
 {
-    if((ui->tableWidget_2->horizontalHeaderItem(item->column())->data(Qt::DisplayRole).toString() != "NameSt") || m_isCompared)
-    {
+    if(m_isCompared)
         return;
+
+    int row = item->row();
+    int column = -1;
+    for(int i = 0; i < m_tableRight->getTable()->horizontalHeader()->count(); ++i)
+    {
+        auto itemH = m_tableRight->getTable()->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == "NameSt")
+            column = i;
     }
+    if(column == -1)
+        return;
+
+    item = m_tableRight->getTable()->item(row, column);
+
     if((!m_item2) || (m_item2->background() != m_brushGreen))
     {
         m_brush2 = item->background();
@@ -277,6 +360,46 @@ void Widget::doubleClickedTableRightItem(QTableWidgetItem *item)
         m_item2 = item;
     }
     m_item2->setSelected(false);
+
+    int columnSecond = -1;
+    for(int i = 0; i < m_tableLeft->getTable()->horizontalHeader()->count(); ++i)
+    {
+        auto itemH = m_tableLeft->getTable()->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == "NameSt")
+            columnSecond = i;
+    }
+    if(columnSecond == -1)
+        return;
+
+    for(int i = 0; i < m_tableLeft->getTable()->verticalHeader()->count(); ++i)
+    {
+       auto itemV = m_tableLeft->getTable()->item(i, columnSecond);
+       if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
+       {
+           item = itemV;
+
+           if((!m_item1) || (m_item1->background() != m_brushGreen))
+           {
+               m_brush1 = item->background();
+               item->setBackground(m_brushGreen);
+
+               m_tableLeft->setStation(item->text());
+
+               m_item1 = item;
+           }
+           else if (m_item1->background() == m_brushGreen)
+           {
+               m_item1->setBackground(m_brush1);
+               m_brush1 = item->background();
+               item->setBackground(m_brushGreen);
+
+               m_tableLeft->setStation(item->text());
+
+               m_item1 = item;
+           }
+           m_item1->setSelected(false);
+       }
+    }
 }
 
 Widget::~Widget()
