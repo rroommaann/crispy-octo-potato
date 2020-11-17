@@ -71,8 +71,10 @@ void MyTable::createNewHashData(QStringList listOfColumns, tableType type)
     hash = MultiHashOfRecords(&query, key);
 }
 
-void MyTable::resetTable()
+void MyTable::resetTable(QString dbName)
 {
+    if(!dbName.isEmpty())
+        m_nameDB = dbName;
     QString q = "SELECT * "
                 "FROM Stations "
                 "ORDER BY NoSt ASC;";

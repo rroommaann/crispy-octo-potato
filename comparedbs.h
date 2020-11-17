@@ -114,8 +114,6 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
 
     QStringList listOfColumns = prepareColumnsList(list, type);
 
-    qDebug() << listOfColumns;
-
     int columnCount = listOfColumns.count();
     table1->setColumnCount(columnCount);
     table2->setColumnCount(columnCount);
@@ -153,12 +151,14 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
         }
         else if (list2.isEmpty() && !list1.isEmpty())
         {
-            for (int i = 0; i < list1.size(); i++){
+            for (int i = 0; i < list1.size(); i++)
+            {
                 QSqlRecord record = list1[i];
                 rows++;
                 table1->setRowCount(rows);
                 table2->setRowCount(rows);
-                for(int col = 0; col < table1->columnCount(); col++){
+                for(int col = 0; col < table1->columnCount(); col++)
+                {
                     QString fieldName = listOfColumns[col];
                     QTableWidgetItem *newItem1 = new QTableWidgetItem(record.field(fieldName).value().toString(),0);
                     QTableWidgetItem *newItem2 = new QTableWidgetItem("*", 0);
@@ -168,66 +168,80 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
                     table2->setItem(rows - 1, col, newItem2);
                 }
             }
-        } else if (list2.isEmpty() && list1.isEmpty())
+        }
+        else if (list2.isEmpty() && list1.isEmpty())
         {
 
-        } else {
+        } else
+        {
             int maxListSize = (list1.size() >= list2.size()) ? list1.size() : list2.size();
-            for (int i = 0; i < maxListSize; i++){
+            for (int i = 0; i < maxListSize; i++)
+            {
                 QSqlRecord record1;
                 QSqlRecord record2;
-                if (list1.size() > list2.size()){
+                if (list1.size() > list2.size())
+                {
                     record1 = list1[i];
-                    if(i >= list2.size()){
+                    if(i >= list2.size())
                         record2 = QSqlRecord();
-                    } else if (i < list2.size()){
+                    else
                         record2 = list2[i];
-                    }
                 }
-                if (list2.size() > list1.size()){
+                if (list2.size() > list1.size())
+                {
                     record2 = list1[i];
-                    if(i >= list1.size()){
+                    if(i >= list1.size())
                         record1 = QSqlRecord();
-                    } else if (i < list1.size()){
+                    else
                         record1 = list1[i];
-                    }
                 }
-                if (list1.size() == list2.size()){
+                if (list1.size() == list2.size())
+                {
                     record1 = list1[i];
                     record2 = list2[i];
                 }
-                if(!record1.isEmpty()){
-                    if(!record2.isEmpty()){
+                if(!record1.isEmpty())
+                {
+                    if(!record2.isEmpty())
+                    {
                         int test = 0;
-                        for (QString s : listOfColumns){
-                            if (record1.field(s).value().toString() != record2.field(s).value().toString()){
+                        for (QString s : listOfColumns)
+                        {
+                            if (record1.field(s).value().toString() != record2.field(s).value().toString())
+                            {
                                 test = 1;
                                 break;
                             }
                         }
-                        if (test == 0){
+                        if (test == 0)
+                        {
                             rows++;
                             table1->setRowCount(rows);
                             table2->setRowCount(rows);
-                            for(int col = 0; col < columnCount; col++){
+                            for(int col = 0; col < columnCount; col++)
+                            {
                                 QString fieldName = listOfColumns[col];
                                 QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
                                 QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
                                 table1->setItem(rows-1,col, newItem1);
                                 table2->setItem(rows-1,col, newItem2);
                             }
-                        } else {
+                        } else
+                        {
                             rows++;
                             table1->setRowCount(rows);
                             table2->setRowCount(rows);
-                            for(int col = 0; col < columnCount; col++){
+                            for(int col = 0; col < columnCount; col++)
+                            {
                                 QString fieldName = listOfColumns[col];
                                 QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
                                 QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
-                                if (record1.field(fieldName).value().toString() != record2.field(fieldName).value().toString()){
+                                if (record1.field(fieldName).value().toString() != record2.field(fieldName).value().toString())
+                                {
                                     newItem1->setBackground(diffBrush);
                                     newItem2->setBackground(diffBrush);
-                                } else {
+                                } else
+                                {
                                     newItem1->setBackground(brush);
                                     newItem2->setBackground(brush);
                                 }
@@ -256,7 +270,8 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
                     rows++;
                     table1->setRowCount(rows);
                     table2->setRowCount(rows);
-                    for(int col = 0; col < columnCount; col++){
+                    for(int col = 0; col < columnCount; col++)
+                    {
                         QString fieldName = listOfColumns[col];
                         QTableWidgetItem *newItem1 = new QTableWidgetItem("*",0);
                         QTableWidgetItem *newItem2 = new QTableWidgetItem(record.field(fieldName).value().toString(),0);
@@ -269,124 +284,6 @@ static void compareDbs(MultiHashOfRecords hash1, MultiHashOfRecords hash2, QTabl
             }
         }
     }
-
-//    for(auto key : keys1)
-//    {
-//        QSqlRecord record1 = massiveOfRecors1.getMassive()->value(key);
-//        QSqlRecord record2 = massiveOfRecors2.getMassive()->value(key);
-
-//        if(!record1.isEmpty())
-//        {
-//            if(!record2.isEmpty())
-//            {
-//                bool isDiff = 0;
-//                for (QString s : listOfColumns)
-//                {
-//                    if (record1.field(s).value().toString() != record2.field(s).value().toString())
-//                    {
-//                        isDiff = true;
-//                        break;
-//                    }
-//                }
-//                if (!isDiff)
-//                {
-//                    rows++;
-//                    table1->setRowCount(rows);
-//                    table2->setRowCount(rows);
-//                    for(int col = 0; col < columnCount; col++)
-//                    {
-//                        QString fieldName = listOfColumns[col];
-//                        QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
-//                        QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
-//                        table1->setItem(rows-1,col, newItem1);
-//                        table2->setItem(rows-1,col, newItem2);
-//                    }
-//                }
-//                else if (isDiff)
-//                {
-//                    rows++;
-//                    table1->setRowCount(rows);
-//                    table2->setRowCount(rows);
-//                    for(int col = 0; col < columnCount; col++)
-//                    {
-//                        QString fieldName = listOfColumns[col];
-//                        QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
-//                        QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
-//                        if (record1.field(fieldName).value().toString() != record2.field(fieldName).value().toString())
-//                        {
-//                            newItem1->setBackground(diffBrush);
-//                            newItem2->setBackground(diffBrush);
-//                        }
-//                        else
-//                        {
-//                            newItem1->setBackground(brush);
-//                            newItem2->setBackground(brush);
-//                        }
-//                        table1->setItem(rows-1,col, newItem1);
-//                        table2->setItem(rows-1,col, newItem2);
-//                    }
-//                    isDiff = false;
-//                }
-//            }
-//            else
-//            {
-//                rows++;
-//                table1->setRowCount(rows);
-//                table2->setRowCount(rows);
-//                for(int col = 0; col < columnCount; col++)
-//                {
-//                    QString fieldName = listOfColumns[col];
-//                    QTableWidgetItem *newItem1 = new QTableWidgetItem(record1.field(fieldName).value().toString(),0);
-//                    QTableWidgetItem *newItem2 = new QTableWidgetItem("*",0);
-//                    newItem1->setBackground(brush);
-//                    newItem2->setBackground(brush);
-//                    table1->setItem(rows - 1, col, newItem1);
-//                    table2->setItem(rows - 1, col, newItem2);
-//                }
-//            }
-//        }
-//        else if(!record2.isEmpty())
-//        {
-//            rows++;
-//            table1->setRowCount(rows);
-//            table2->setRowCount(rows);
-//            for(int col = 0; col < columnCount; col++)
-//            {
-//                QString fieldName = listOfColumns[col];
-//                QTableWidgetItem *newItem1 = new QTableWidgetItem("*",0);
-//                QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
-//                newItem1->setBackground(brush);
-//                newItem2->setBackground(brush);
-//                table1->setItem(rows - 1, col, newItem1);
-//                table2->setItem(rows - 1, col, newItem2);
-//            }
-//        }
-//    }
-
-//    for(auto key : keys2)
-//    {
-//        if(!keys1.contains(key))
-//        {
-//            QSqlRecord record1 = massiveOfRecors1.getMassive()->value(key);
-//            QSqlRecord record2 = massiveOfRecors2.getMassive()->value(key);
-//            if(record1.isEmpty())
-//            {
-//                rows++;
-//                table1->setRowCount(rows);
-//                table2->setRowCount(rows);
-//                for(int col = 0; col < columnCount; col++)
-//                {
-//                    QString fieldName = listOfColumns[col];
-//                    QTableWidgetItem *newItem1 = new QTableWidgetItem("*",0);
-//                    QTableWidgetItem *newItem2 = new QTableWidgetItem(record2.field(fieldName).value().toString(),0);
-//                    newItem1->setBackground(brush);
-//                    newItem2->setBackground(brush);
-//                    table1->setItem(rows - 1, col, newItem1);
-//                    table2->setItem(rows - 1, col, newItem2);
-//                }
-//            }
-//        }
-//    }
 
     table1->resizeRowsToContents();
     table1->resizeColumnsToContents();

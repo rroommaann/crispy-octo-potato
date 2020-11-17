@@ -70,7 +70,7 @@ FormColumns::FormColumns(QStringList list, QWidget *parent) :
     ui(new Ui::FormStations)
 {
     ui->setupUi(this);
-    setWindowFlags((Qt::WindowFlags)(Qt::WindowStaysOnTopHint | Qt::Dialog  | Qt::WindowCloseButtonHint));
+    setWindowFlags((Qt::WindowFlags)(Qt::Dialog  | Qt::WindowCloseButtonHint));
 
     updateWidget(list);
 }

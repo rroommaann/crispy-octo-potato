@@ -34,7 +34,7 @@ public:
     Widget(QWidget *parent = nullptr);
     ~Widget();
 
-    QStringList getListOfColumns();
+    QStringList getListOfColumns(bool diff);
 
 private:
     Ui::Widget *ui;

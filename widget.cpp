@@ -7,7 +7,7 @@ using namespace std;
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent),
-      ui(new Ui::Widget)
+    ui(new Ui::Widget)
 {
     ui->setupUi(this);
     setMinimumSize(800,600);
@@ -36,14 +36,10 @@ void Widget::initialize(){
 void Widget::compareDBs()
 {
     if(!(m_tableLeft && m_tableRight))
-    {
         return;
-    }
 
     if (!(m_tableLeft->isReady() && m_tableRight->isReady()))
-    {
         return;
-    }
 
     if(m_item1 && m_item2)
     {
@@ -54,16 +50,13 @@ void Widget::compareDBs()
         }
     }
     else
-    {
         if(selectedType != Stations)
             return;
-    }
 
     if(m_isCompared && (selectedType != Stations))
-    {
         return;
-    }
 
+    form->hide();
     m_tableLeft->createNewHashData(form->getListofColumns(), selectedType);
     m_tableRight->createNewHashData(form->getListofColumns(), selectedType);
 
@@ -99,56 +92,54 @@ void Widget::open()
 void Widget::reset()
 {
     if(m_tableLeft)
-    {
         m_tableLeft->resetTable();
-    }
+
     if(m_tableRight)
-    {
         m_tableRight->resetTable();
-    }
+
     m_item1 = nullptr;
     m_item2 = nullptr;
     m_isCompared = false;
     QTimer::singleShot(10, this, [=]
-    {
-        int index = comboBox->currentIndex();
-        comboBox->setCurrentIndex(0);
-        QTimer::singleShot(10, this, [=]
-        {
-            form->on_pushButton_2_clicked();
-            compareDBs();
-            comboBox->setCurrentIndex(index);
-        });
-    });
+                       {
+                           int index = comboBox->currentIndex();
+                           comboBox->setCurrentIndex(0);
+                           QTimer::singleShot(10, this, [=]
+                                              {
+                                                  form->on_pushButton_2_clicked();
+                                                  compareDBs();
+                                                  comboBox->blockSignals(true);
+                                                  comboBox->setCurrentIndex(index);
+                                                  selectedType = (tableType)index;
+                                                  form->updateWidget(getListOfColumns(false));
+                                                  comboBox->blockSignals(false);
+                                              });
+                       });
 }
 
-QStringList Widget::getListOfColumns()
+QStringList Widget::getListOfColumns(bool diff)
 {
     QString queryStr = "";
+    QString name;
     if(selectedType == TS)
     {
+        name = "TS";
         queryStr = "SELECT * FROM TS;";
     }
     else if (selectedType == TU)
     {
+        name = "TU";
         queryStr = "SELECT * FROM TU;";
     }
     else if (selectedType == RouteSrc)
     {
+        name = "RouteSrc";
         queryStr = "SELECT * FROM RouteSrc;";
     }
     else if(selectedType == Stations)
     {
+        name = "Stations";
         queryStr = "SELECT * FROM Stations;";
-        //        QStringList listFinal;
-        //        for (auto s : m_tableLeft->getHash().getColumns())
-        //        {
-        //            if(m_tableRight->getHash().getColumns().contains(s))
-        //            {
-        //                listFinal.append(s);
-        //            }
-        //        }
-        //        return listFinal;
     }
 
     QSqlQuery query1(getDb(m_tableLeft->getNameDB()));
@@ -174,18 +165,36 @@ QStringList Widget::getListOfColumns()
     }
 
     QStringList listFinal;
+    QStringList listDiff;
     for (auto s : listOfStations1)
     {
-        if(listOfStations2.contains(s) && s != "Cod" && s != "NoSt")
+        if(listOfStations2.contains(s))
         {
-            listFinal.append(s);
+            if((selectedType == Stations) && (s == "NoSt"))
+                listFinal.append(s);
+            else if((s != "Cod") && (s != "NoSt"))
+                listFinal.append(s);
+        }
+        else
+        {
+            if((selectedType == Stations) && (s == "NoSt"))
+                listDiff.append(s);
+            else if((s != "Cod") && (s != "NoSt"))
+                listDiff.append(s);
         }
     }
+
+    if(diff && listDiff.size() > 0)
+        QMessageBox::information(this, "Разные поля", QString("Базы данных имеют не общие поля в таблице %1, поля %2").arg(name).arg(listDiff.join(", ")));
+
+    form->raise();
+
     return listFinal;
 }
 
 void Widget::openColumns()
 {
+    form->raise();
     form->show();
 }
 
@@ -200,21 +209,23 @@ void Widget::setTable(QString name, QString q)
     if (q == "openButton1")
     {
         if(m_tableLeft)
+            m_tableLeft->resetTable(name);
+        else
         {
-            delete m_tableLeft;
+            m_tableLeft = new MyTable(name);
+            m_tableLeft->setTable(ui->tableWidget);
         }
-        m_tableLeft = new MyTable(name);
-        m_tableLeft->setTable(ui->tableWidget);
         ui->labelLeft->setText(name);
     }
     else
     {
         if(m_tableRight)
+            m_tableRight->resetTable(name);
+        else
         {
-            delete m_tableRight;
+            m_tableRight = new MyTable(name);
+            m_tableRight->setTable(ui->tableWidget_2);
         }
-        m_tableRight = new MyTable(name);
-        m_tableRight->setTable(ui->tableWidget_2);
         ui->labelRight->setText(name);
     }
 
@@ -225,18 +236,18 @@ void Widget::setTable(QString name, QString q)
             comboBox->clear();
             comboBox->addItems(QStringList() << "Stations" << "TS" << "TU" << "RouteSrc");
             selectedType = Stations;
-            form->updateWidget(getListOfColumns());
+            form->updateWidget(getListOfColumns(false));
 
             form->on_pushButton_2_clicked();
             compareDBs();
             form->on_pushButton_3_clicked();
 
             connect(comboBox, QOverload<const QString&>::of(&QComboBox::currentIndexChanged), this, [=] (QString string)
-            {
-                int index = comboBox->findText(string);
-                selectedType = (tableType)index;
-                form->updateWidget(getListOfColumns());
-            });
+                    {
+                        int index = comboBox->findText(string);
+                        selectedType = (tableType)index;
+                        form->updateWidget(getListOfColumns(true));
+                    });
         }
     }
 }
@@ -292,33 +303,33 @@ void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
 
     for(int i = 0; i < m_tableRight->getTable()->verticalHeader()->count(); ++i)
     {
-       auto itemV = m_tableRight->getTable()->item(i, columnSecond);
+        auto itemV = m_tableRight->getTable()->item(i, columnSecond);
 
-       if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
-       {
-           item = itemV;
+        if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
+        {
+            item = itemV;
 
-           if((!m_item2) || (m_item2->background() != m_brushGreen))
-           {
-               m_brush2 = item->background();
-               item->setBackground(m_brushGreen);
+            if((!m_item2) || (m_item2->background() != m_brushGreen))
+            {
+                m_brush2 = item->background();
+                item->setBackground(m_brushGreen);
 
-               m_tableRight->setStation(item->text());
+                m_tableRight->setStation(item->text());
 
-               m_item2 = item;
-           }
-           else if (m_item2->background() == m_brushGreen)
-           {
-               m_item2->setBackground(m_brush2);
-               m_brush2 = item->background();;
-               item->setBackground(m_brushGreen);
+                m_item2 = item;
+            }
+            else if (m_item2->background() == m_brushGreen)
+            {
+                m_item2->setBackground(m_brush2);
+                m_brush2 = item->background();;
+                item->setBackground(m_brushGreen);
 
-               m_tableRight->setStation(item->text());
+                m_tableRight->setStation(item->text());
 
-               m_item2 = item;
-           }
-           m_item2->setSelected(false);
-       }
+                m_item2 = item;
+            }
+            m_item2->setSelected(false);
+        }
     }
 }
 
@@ -373,32 +384,32 @@ void Widget::doubleClickedTableRightItem(QTableWidgetItem *item)
 
     for(int i = 0; i < m_tableLeft->getTable()->verticalHeader()->count(); ++i)
     {
-       auto itemV = m_tableLeft->getTable()->item(i, columnSecond);
-       if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
-       {
-           item = itemV;
+        auto itemV = m_tableLeft->getTable()->item(i, columnSecond);
+        if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
+        {
+            item = itemV;
 
-           if((!m_item1) || (m_item1->background() != m_brushGreen))
-           {
-               m_brush1 = item->background();
-               item->setBackground(m_brushGreen);
+            if((!m_item1) || (m_item1->background() != m_brushGreen))
+            {
+                m_brush1 = item->background();
+                item->setBackground(m_brushGreen);
 
-               m_tableLeft->setStation(item->text());
+                m_tableLeft->setStation(item->text());
 
-               m_item1 = item;
-           }
-           else if (m_item1->background() == m_brushGreen)
-           {
-               m_item1->setBackground(m_brush1);
-               m_brush1 = item->background();
-               item->setBackground(m_brushGreen);
+                m_item1 = item;
+            }
+            else if (m_item1->background() == m_brushGreen)
+            {
+                m_item1->setBackground(m_brush1);
+                m_brush1 = item->background();
+                item->setBackground(m_brushGreen);
 
-               m_tableLeft->setStation(item->text());
+                m_tableLeft->setStation(item->text());
 
-               m_item1 = item;
-           }
-           m_item1->setSelected(false);
-       }
+                m_item1 = item;
+            }
+            m_item1->setSelected(false);
+        }
     }
 }
 

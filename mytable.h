@@ -36,7 +36,7 @@ public:
     QString getNameDB() const;
     void createNewHashData(QStringList listOfColumns, tableType type);
 
-    void resetTable();
+    void resetTable(QString dbName = "");
 
 private:
     void setViewReady();
