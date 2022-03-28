@@ -5,7 +5,7 @@
 #include <QRegularExpression>
 #include <QDebug>
 
-static QSqlDatabase getDb(QString dbPath, QString passwordForMdb = "64465")
+static QSqlDatabase getDb(const QString &dbPath, const QString &passwordForMdb = "64465")
 {
     if (QSqlDatabase::contains(dbPath))
         return QSqlDatabase::database(dbPath);

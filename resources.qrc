@@ -3,5 +3,7 @@
         <file>images/open_view.png</file>
         <file>images/restore.png</file>
         <file>images/compare.png</file>
+        <file>images/goDown.png</file>
+        <file>images/goUp.png</file>
     </qresource>
 </RCC>

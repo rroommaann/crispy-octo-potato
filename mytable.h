@@ -21,12 +21,12 @@ class MyTable : public QWidget
     Q_OBJECT
 
 public:
-    explicit MyTable(QString dbName, QWidget *parent = nullptr);
+    explicit MyTable(const QString &dbName, QWidget *parent = nullptr);
     MyTable(QWidget *parent = nullptr);
-    void setStation(QString q);
+    void setStation(const QString &stationName);
     ~MyTable();
 
-    MultiHashOfRecords getHash() const;
+    MultiHashOfRecords *getHash() const;
 
     void setTable(QTableWidget *value);
     QTableWidget *getTable() const;
@@ -34,15 +34,19 @@ public:
     bool isReady() const;
 
     QString getNameDB() const;
-    void createNewHashData(QStringList listOfColumns, tableType type);
+    void createNewHashData(const QStringList &listOfColumns, tableType type);
 
-    void resetTable(QString dbName = "");
+    void resetTable(const QString &dbName = "");
+
+    const QStringList &getListOfStations() const;
 
 private:
     void setViewReady();
     QString m_nameDB;
-    MultiHashOfRecords hash;
+    MultiHashOfRecords *hash = nullptr;
     QTableWidget *table = nullptr;
+
+    QStringList listOfStations;
 
     bool ready = false;
 

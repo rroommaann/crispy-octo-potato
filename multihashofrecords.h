@@ -11,8 +11,7 @@
 class MultiHashOfRecords
 {
 public:
-    MultiHashOfRecords(QSqlQuery *query, QString key);
-    MultiHashOfRecords();
+    MultiHashOfRecords(QSqlQuery &query, const QString &key);
     ~MultiHashOfRecords();
     QMultiMap<QVariant, QSqlRecord> *getMassive();
 

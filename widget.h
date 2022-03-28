@@ -45,11 +45,11 @@ private:
 
     void initialize ();
 
-    MyTable* m_tableLeft = nullptr;
-    MyTable* m_tableRight = nullptr;
+    MyTable *m_tableLeft = nullptr;
+    MyTable *m_tableRight = nullptr;
 
-    QTableWidgetItem* m_item1 = nullptr;
-    QTableWidgetItem* m_item2 = nullptr;
+    QTableWidgetItem *m_item1 = nullptr;
+    QTableWidgetItem *m_item2 = nullptr;
 
     QBrush m_brushGreen;
     QBrush m_brush1;
@@ -60,7 +60,10 @@ private:
     FormColumns *form = nullptr;
     QComboBox *comboBox = nullptr;
 
-    void setTable(QString name, QString q);
+    QVector<int> vectorOfDiffRows;
+    int currentIndex = -1;
+
+    void setTable(const QString &name, const QString &q);
 
 private slots:
     void doubleClickedTableLeftItem(QTableWidgetItem *item);
@@ -69,6 +72,8 @@ private slots:
     void compareDBs();
     void reset();
     void openColumns();
+    void on_pushButtonUp_clicked();
+    void on_pushButtonDown_clicked();
 };
 
 #endif // WIDGET_H

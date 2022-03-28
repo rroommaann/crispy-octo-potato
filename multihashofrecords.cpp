@@ -1,49 +1,35 @@
 #include "multihashofrecords.h"
 #include <QSqlQuery>
 
-MultiHashOfRecords::MultiHashOfRecords(QSqlQuery *query, QString key)
+MultiHashOfRecords::MultiHashOfRecords(QSqlQuery &query, const QString &key)
 {
     QSqlRecord record;
     m_multiHash = new QMultiMap<QVariant, QSqlRecord>;
     int i = 0;
-    while(query->record().fieldName(i) != "")
+    while(query.record().fieldName(i) != "")
     {
-        columns.append(query->record().fieldName(i));
+        columns.append(query.record().fieldName(i));
         i++;
     }
 
-    while (query->next())
+    query.first();
+    do
     {
-        record = query->record();
-        if(record.field(key).value().toInt() != 0)
-        {
-            QVariant s = record.field(key).value().toInt();
-            m_multiHash->insert(s, record);
-        }
-        else
-        {
-            QString s = record.field(key).value().toString();
-            m_multiHash->insert(s, record);
-        }
-    }
+        record = query.record();
+        QVariant s = record.field(key).value();
+        m_multiHash->insert(s, record);
+    } while(query.next());
 }
-
-MultiHashOfRecords::MultiHashOfRecords()
-{
-
-}
-
 
 MultiHashOfRecords::~MultiHashOfRecords()
-{
-}
+= default;
 
-QMultiMap<QVariant, QSqlRecord>* MultiHashOfRecords::getMassive()
+auto MultiHashOfRecords::getMassive() -> QMultiMap<QVariant, QSqlRecord>*
 {
     return this->m_multiHash;
 }
 
-QStringList MultiHashOfRecords::getColumns() const
+auto MultiHashOfRecords::getColumns() const -> QStringList
 {
     return columns;
 }

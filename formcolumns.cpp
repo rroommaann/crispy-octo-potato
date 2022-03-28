@@ -1,11 +1,11 @@
 #include "formcolumns.h"
 #include "ui_formcolumns.h"
-void FormColumns::updateWidget(QStringList list)
+void FormColumns::updateWidget(const QStringList &list)
 {
     if (ui->gridLayoutOfStations)
     {
-        QLayoutItem* item;
-        while ((item = ui->gridLayoutOfStations->takeAt( 0 )))
+        QLayoutItem *item = nullptr;
+        while ((item = ui->gridLayoutOfStations->takeAt(0)))
         {
             delete item->widget();
             delete item;
@@ -14,14 +14,14 @@ void FormColumns::updateWidget(QStringList list)
 
     listOfCheckBoxes.clear();
     int listSize = list.size();
-    short offset = listSize % 4;
-    short rows = (listSize / 4) - 1;
+    int offset = listSize % 4;
+    int rows = (listSize / 4) - 1;
 
     static short currentRow = 0;
     static short currentColumn = 0;
-    for(auto column : list)
+    for(const auto &column : list)
     {
-        QCheckBox *box = new QCheckBox(column);
+        auto *box = new QCheckBox(column);
         box->setChecked(false);
 
         ui->gridLayoutOfStations->addWidget(box, currentRow, currentColumn);
@@ -44,12 +44,13 @@ void FormColumns::updateWidget(QStringList list)
             ++currentColumn;
         }
     }
+
     currentRow = 0;
     currentColumn = 0;
     synchBoxes();
 }
 
-QStringList FormColumns::getListofColumns() const
+auto FormColumns::getListofColumns() const -> QStringList
 {
     QStringList list;
 
@@ -60,18 +61,17 @@ QStringList FormColumns::getListofColumns() const
     return list;
 }
 
-QComboBox *FormColumns::getComboBox()
+auto FormColumns::getComboBox() -> QComboBox *
 {
     return ui->comboBox;
 }
 
-FormColumns::FormColumns(QStringList list, QWidget *parent) :
+FormColumns::FormColumns(const QStringList &list, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::FormStations)
 {
     ui->setupUi(this);
     setWindowFlags((Qt::WindowFlags)(Qt::Dialog  | Qt::WindowCloseButtonHint));
-
     updateWidget(list);
 }
 
@@ -83,19 +83,16 @@ FormColumns::~FormColumns()
 void FormColumns::on_pushButton_clicked()
 {
     this->hide();
-    for(auto box : listOfCheckBoxes)
+    for(const auto box : qAsConst(listOfCheckBoxes))
     {
         if(box->checkState() == Qt::Checked)
         {
             if(hashOfLastSelection.contains(ui->comboBox->currentIndex()))
             {
-                auto set = hashOfLastSelection.value(ui->comboBox->currentIndex());
+                auto &set = hashOfLastSelection[ui->comboBox->currentIndex()];
                 QString text = box->text();
                 if(!set.contains(text))
-                {
                     set.insert(text);
-                    hashOfLastSelection.insert(ui->comboBox->currentIndex(), set);
-                }
             }
             else
             {
@@ -108,7 +105,7 @@ void FormColumns::on_pushButton_clicked()
         {
             if(hashOfLastSelection.contains(ui->comboBox->currentIndex()))
             {
-                auto set = hashOfLastSelection.value(ui->comboBox->currentIndex());
+                auto &set = hashOfLastSelection[ui->comboBox->currentIndex()];
                 QString text = box->text();
                 if(set.contains(text))
                     set.remove(text);
@@ -119,28 +116,23 @@ void FormColumns::on_pushButton_clicked()
 
 void FormColumns::on_pushButton_2_clicked()
 {
-    for(auto p : listOfCheckBoxes)
-        if(!p->isChecked())
-            p->setChecked(true);
+    for(auto p : qAsConst(listOfCheckBoxes))
+        p->setChecked(true);
 }
 
 void FormColumns::on_pushButton_3_clicked()
 {
-    for(auto p : listOfCheckBoxes)
-        if(p->isChecked())
-            p->setChecked(false);
+    for(auto p : qAsConst(listOfCheckBoxes))
+        p->setChecked(false);
 }
 
 void FormColumns::synchBoxes()
 {
     if(hashOfLastSelection.contains(ui->comboBox->currentIndex()))
     {
-        auto set = hashOfLastSelection.value(ui->comboBox->currentIndex());
-        for(auto p : listOfCheckBoxes)
-            if(set.contains(p->text()))
-                p->setChecked(true);
-            else
-                p->setChecked(false);
+        auto &set = hashOfLastSelection.value(ui->comboBox->currentIndex());
+        for(const auto p : qAsConst(listOfCheckBoxes))
+            p->setChecked(set.contains(p->text()));
     }
 }
 

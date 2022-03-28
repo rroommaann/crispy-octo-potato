@@ -3,9 +3,7 @@
 # Project created by QtCreator 2018-11-02T00:38:23
 #
 #-------------------------------------------------
-QT     += core gui sql
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT     += core gui sql widgets
 
 TARGET = ExamT
 

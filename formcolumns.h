@@ -16,9 +16,9 @@ class FormColumns : public QWidget
     Q_OBJECT
 
 public:
-    explicit FormColumns(QStringList list, QWidget *parent = nullptr);
+    explicit FormColumns(const QStringList &list, QWidget *parent = nullptr);
     ~FormColumns();
-    void updateWidget(QStringList list);
+    void updateWidget(const QStringList &list);
     QStringList getListofColumns() const;
 
     QComboBox *getComboBox();
@@ -32,15 +32,14 @@ public slots:
 
 private slots:
     void on_pushButton_clicked();
-
     void on_pushButton_4_clicked();
+
 
 private:
     Ui::FormStations *ui;
     QStringList list;
-    QList<QCheckBox*> listOfCheckBoxes;
+    QList<QCheckBox *> listOfCheckBoxes;
     QHash<int, QSet<QString>> hashOfLastSelection;
-
     void synchBoxes();
 
 protected:

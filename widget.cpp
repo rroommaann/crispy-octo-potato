@@ -7,10 +7,10 @@ using namespace std;
 
 Widget::Widget(QWidget *parent)
     : QWidget(parent),
-    ui(new Ui::Widget)
+      ui(new Ui::Widget)
 {
     ui->setupUi(this);
-    setMinimumSize(800,600);
+    setMinimumSize(800, 600);
     initialize();
 }
 
@@ -19,7 +19,7 @@ void Widget::initialize(){
     m_item1 = nullptr;
     m_item2 = nullptr;
     m_brushGreen.setStyle(Qt::SolidPattern);
-    QColor color = "#86FA69";
+    QColor color(QStringLiteral(u"#86FA69"));
     m_brushGreen.setColor(color);
 
     form = new FormColumns(QStringList());
@@ -27,47 +27,95 @@ void Widget::initialize(){
 
     comboBox = form->getComboBox();
 
-    connect(ui->tableWidget->verticalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget_2->verticalScrollBar(), SLOT(setValue(int)));
-    connect(ui->tableWidget_2->verticalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget->verticalScrollBar(), SLOT(setValue(int)));
-    connect(ui->tableWidget->horizontalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget_2->horizontalScrollBar(), SLOT(setValue(int)));
-    connect(ui->tableWidget_2->horizontalScrollBar(), SIGNAL (valueChanged(int)), ui->tableWidget->horizontalScrollBar(), SLOT(setValue(int)));
+    connect(ui->tableWidgetLeft->verticalScrollBar(), &QAbstractSlider::valueChanged, ui->tableWidgetRight->verticalScrollBar(), &QAbstractSlider::setValue);
+    connect(ui->tableWidgetRight->verticalScrollBar(), &QAbstractSlider::valueChanged, ui->tableWidgetLeft->verticalScrollBar(), &QAbstractSlider::setValue);
+    connect(ui->tableWidgetLeft->horizontalScrollBar(), &QAbstractSlider::valueChanged, ui->tableWidgetRight->horizontalScrollBar(), &QAbstractSlider::setValue);
+    connect(ui->tableWidgetRight->horizontalScrollBar(), &QAbstractSlider::valueChanged, ui->tableWidgetLeft->horizontalScrollBar(), &QAbstractSlider::setValue);
 }
 
 void Widget::compareDBs()
 {
-    if(!(m_tableLeft && m_tableRight))
+    if(!(m_tableLeft && m_tableRight) || !(m_tableLeft->isReady() && m_tableRight->isReady()))
         return;
 
-    if (!(m_tableLeft->isReady() && m_tableRight->isReady()))
-        return;
-
+    bool allStations = false;
     if(m_item1 && m_item2)
     {
         if(m_item1->text() != m_item2->text())
         {
-            QMessageBox::critical (this, tr("Ошибка"), tr("Выбраны разные станции!"));
+            QMessageBox::critical(this, QStringLiteral(u"Ошибка"), QStringLiteral(u"Выбраны разные станции!"));
             return;
         }
     }
     else
+    {
         if(selectedType != Stations)
-            return;
+        {
+            auto clickedBtn = QMessageBox::question(this, QStringLiteral(u"Ошибка"),
+                                                    QStringLiteral(u"Вы не выбрали станцию для сравнения, продолжить сравнение по всем станциям?"));
+
+            if(clickedBtn == QMessageBox::No)
+                return;
+
+            allStations = true;
+        }
+    }
 
     if(m_isCompared && (selectedType != Stations))
         return;
 
     form->hide();
-    m_tableLeft->createNewHashData(form->getListofColumns(), selectedType);
-    m_tableRight->createNewHashData(form->getListofColumns(), selectedType);
 
-    compareDbs(m_tableLeft->getHash(), m_tableRight->getHash(), ui->tableWidget, ui->tableWidget_2, selectedType, form->getListofColumns());
+    ui->tableWidgetLeft->setUpdatesEnabled(false);
+    ui->tableWidgetRight->setUpdatesEnabled(false);
+
+    auto list = form->getListofColumns();
+
+    // true сравнение по всем станциям, будут отображаться только различия
+    if(allStations)
+    {
+        auto listOfStationsLeft = m_tableLeft->getListOfStations();
+        auto listOfStationsRight = m_tableRight->getListOfStations();
+        ui->tableWidgetLeft->clear();
+        ui->tableWidgetLeft->setRowCount(0);
+        ui->tableWidgetRight->clear();
+        ui->tableWidgetRight->setRowCount(0);
+        for(const auto &stationName : listOfStationsLeft)
+        {
+            if(listOfStationsRight.contains(stationName))
+            {
+                m_tableLeft->setStation(stationName);
+                m_tableRight->setStation(stationName);
+
+                m_tableLeft->createNewHashData(list, selectedType);
+                m_tableRight->createNewHashData(list, selectedType);
+
+                compareDbs(m_tableLeft->getHash(), m_tableRight->getHash(), ui->tableWidgetLeft, ui->tableWidgetRight, selectedType, list, allStations);
+            }
+        }
+    }
+    else
+    {
+        m_tableLeft->createNewHashData(list, selectedType);
+        m_tableRight->createNewHashData(list, selectedType);
+        currentIndex = -1;
+        vectorOfDiffRows = compareDbs(m_tableLeft->getHash(), m_tableRight->getHash(), ui->tableWidgetLeft, ui->tableWidgetRight, selectedType, list, allStations);
+    }
 
     m_item1 = nullptr;
     m_item2 = nullptr;
+
     if(selectedType != Stations)
         m_isCompared = true;
-    m_tableLeft->getTable()->resizeRowsToContents();
-    m_tableRight->getTable()->resizeRowsToContents();
+
+    ui->tableWidgetLeft->setUpdatesEnabled(true);
+    ui->tableWidgetRight->setUpdatesEnabled(true);
+
+    ui->tableWidgetLeft->resizeRowsToContents();
+    ui->tableWidgetRight->resizeRowsToContents();
+
+    ui->tableWidgetLeft->resizeColumnsToContents();
+    ui->tableWidgetRight->resizeColumnsToContents();
 }
 
 void Widget::open()
@@ -78,12 +126,13 @@ void Widget::open()
     QStringList nameFilters;
     nameFilters.append("*.mdb");
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
-    fileDialog.setWindowTitle(tr("Open File"));
+    fileDialog.setWindowTitle(QStringLiteral(u"Выберите базу данных Access для открытия:"));
     fileDialog.setNameFilters(nameFilters);
     fileDialog.setDirectory("C:\\");
-    if (fileDialog.exec() == QDialog::Accepted){
+    if(fileDialog.exec() == QDialog::Accepted)
+    {
         QString name = fileDialog.selectedUrls().at(0).path();
-        name.remove(0,1);
+        name.remove(0, 1);
         name.replace("/", "\\");
         setTable(name, q);
     }
@@ -93,53 +142,64 @@ void Widget::reset()
 {
     if(m_tableLeft)
         m_tableLeft->resetTable();
+    else
+        return;
 
     if(m_tableRight)
         m_tableRight->resetTable();
+    else
+        return;
 
     m_item1 = nullptr;
     m_item2 = nullptr;
     m_isCompared = false;
+    vectorOfDiffRows.clear();
+    currentIndex = -1;
     QTimer::singleShot(10, this, [=]
-                       {
-                           int index = comboBox->currentIndex();
-                           comboBox->setCurrentIndex(0);
-                           QTimer::singleShot(10, this, [=]
-                                              {
-                                                  form->on_pushButton_2_clicked();
-                                                  compareDBs();
-                                                  comboBox->blockSignals(true);
-                                                  comboBox->setCurrentIndex(index);
-                                                  selectedType = (tableType)index;
-                                                  form->updateWidget(getListOfColumns(false));
-                                                  comboBox->blockSignals(false);
-                                              });
-                       });
+    {
+        int index = comboBox->currentIndex();
+        comboBox->setCurrentIndex(0);
+        QTimer::singleShot(10, this, [=]
+        {
+            form->on_pushButton_2_clicked();
+            compareDBs();
+            comboBox->blockSignals(true);
+            comboBox->setCurrentIndex(index);
+            selectedType = (tableType)index;
+            form->updateWidget(getListOfColumns(false));
+            comboBox->blockSignals(false);
+        });
+    });
 }
 
-QStringList Widget::getListOfColumns(bool diff)
+auto Widget::getListOfColumns(bool diff) -> QStringList
 {
     QString queryStr = "";
     QString name;
     if(selectedType == TS)
     {
-        name = "TS";
-        queryStr = "SELECT * FROM TS;";
+        name = QStringLiteral(u"TS");
+        queryStr = QStringLiteral(u"SELECT * FROM TS;");
     }
-    else if (selectedType == TU)
+    else if(selectedType == TU)
     {
-        name = "TU";
-        queryStr = "SELECT * FROM TU;";
+        name = QStringLiteral(u"TU");
+        queryStr = QStringLiteral(u"SELECT * FROM TU;");
     }
-    else if (selectedType == RouteSrc)
+    else if(selectedType == RouteSrc)
     {
-        name = "RouteSrc";
-        queryStr = "SELECT * FROM RouteSrc;";
+        name = QStringLiteral(u"RouteSrc");
+        queryStr = QStringLiteral(u"SELECT * FROM RouteSrc;");
     }
     else if(selectedType == Stations)
     {
-        name = "Stations";
-        queryStr = "SELECT * FROM Stations;";
+        name = QStringLiteral(u"Stations");
+        queryStr = QStringLiteral(u"SELECT * FROM Stations;");
+    }
+    else if(selectedType == TuSpok)
+    {
+        name = QStringLiteral(u"TuSpok");
+        queryStr = QStringLiteral(u"SELECT * FROM TuSpok;");
     }
 
     QSqlQuery query1(getDb(m_tableLeft->getNameDB()));
@@ -147,45 +207,36 @@ QStringList Widget::getListOfColumns(bool diff)
     query1.next();
     QStringList listOfStations1;
     int i = 0;
-    while (!query1.record().fieldName(i).isEmpty())
-    {
-        listOfStations1 << query1.record().fieldName(i);
-        i++;
-    }
+    auto record1 = query1.record();
+    while(!record1.fieldName(i).isEmpty())
+        listOfStations1 << record1.fieldName(i++);
 
     QSqlQuery query2(getDb(m_tableRight->getNameDB()));
     query2.exec(queryStr);
     query2.next();
     QStringList listOfStations2;
     i = 0;
-    while (!query2.record().fieldName(i).isEmpty())
-    {
-        listOfStations2 << query2.record().fieldName(i);
-        i++;
-    }
+    auto record2 = query2.record();
+    while(!record2.fieldName(i).isEmpty())
+        listOfStations2 << record2.fieldName(i++);
 
     QStringList listFinal;
     QStringList listDiff;
-    for (auto s : listOfStations1)
+    for(const auto &s : qAsConst(listOfStations1))
     {
-        if(listOfStations2.contains(s))
+        if(((selectedType == Stations) && (s == QLatin1String("NoSt")))
+                || ((selectedType != TuSpok) && (s != QLatin1String("Cod")) && (s != QLatin1String("NoSt")))
+                || ((selectedType == TuSpok) && (s != QLatin1String("No") && (s != QLatin1String("NoSt")))))
         {
-            if((selectedType == Stations) && (s == "NoSt"))
+            if(listOfStations2.contains(s))
                 listFinal.append(s);
-            else if((s != "Cod") && (s != "NoSt"))
-                listFinal.append(s);
-        }
-        else
-        {
-            if((selectedType == Stations) && (s == "NoSt"))
-                listDiff.append(s);
-            else if((s != "Cod") && (s != "NoSt"))
+            else
                 listDiff.append(s);
         }
     }
 
-    if(diff && listDiff.size() > 0)
-        QMessageBox::information(this, "Разные поля", QString("Базы данных имеют не общие поля в таблице %1, поля %2").arg(name).arg(listDiff.join(", ")));
+    if(diff && (listDiff.size() > 0))
+        QMessageBox::information(this, QStringLiteral(u"Разные поля"), QString(QStringLiteral(u"Базы данных справа имеет недостающие поля в таблице %1, поля %2")).arg(name, listDiff.join(", ")));
 
     form->raise();
 
@@ -198,22 +249,22 @@ void Widget::openColumns()
     form->show();
 }
 
-void Widget::setTable(QString name, QString q)
+void Widget::setTable(const QString &name, const QString &q)
 {
-    if(name == ui->labelLeft->text() || name == ui->labelRight->text())
+    if((name == ui->labelLeft->text()) || (name == ui->labelRight->text()))
     {
-        QMessageBox::critical (this, tr("Ошибка"), tr("Выбранная база уже открыта!!"));
+        QMessageBox::critical (this, QStringLiteral(u"Ошибка"), QStringLiteral(u"Выбранная база уже открыта!"));
         return;
     }
 
-    if (q == "openButton1")
+    if (q == QLatin1String("openButton1"))
     {
         if(m_tableLeft)
             m_tableLeft->resetTable(name);
         else
         {
             m_tableLeft = new MyTable(name);
-            m_tableLeft->setTable(ui->tableWidget);
+            m_tableLeft->setTable(ui->tableWidgetLeft);
         }
         ui->labelLeft->setText(name);
     }
@@ -224,17 +275,17 @@ void Widget::setTable(QString name, QString q)
         else
         {
             m_tableRight = new MyTable(name);
-            m_tableRight->setTable(ui->tableWidget_2);
+            m_tableRight->setTable(ui->tableWidgetRight);
         }
         ui->labelRight->setText(name);
     }
 
     if(m_tableLeft && m_tableRight)
     {
-        if (m_tableLeft->isReady() && m_tableRight->isReady())
+        if(m_tableLeft->isReady() && m_tableRight->isReady())
         {
             comboBox->clear();
-            comboBox->addItems(QStringList() << "Stations" << "TS" << "TU" << "RouteSrc");
+            comboBox->addItems(QStringList() << QStringLiteral(u"Stations") << QStringLiteral(u"TS") << QStringLiteral(u"TU") << QStringLiteral(u"TuSpok")<< QStringLiteral(u"RouteSrc"));
             selectedType = Stations;
             form->updateWidget(getListOfColumns(false));
 
@@ -242,173 +293,230 @@ void Widget::setTable(QString name, QString q)
             compareDBs();
             form->on_pushButton_3_clicked();
 
+#if(QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
+            connect(comboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [=] (int index)
+            {
+                selectedType = (tableType)index;
+                form->updateWidget(getListOfColumns(true));
+            });
+#else
             connect(comboBox, QOverload<const QString&>::of(&QComboBox::currentIndexChanged), this, [=] (QString string)
-                    {
-                        int index = comboBox->findText(string);
-                        selectedType = (tableType)index;
-                        form->updateWidget(getListOfColumns(true));
-                    });
+            {
+                int index = comboBox->findText(string);
+                selectedType = (tableType)index;
+                form->updateWidget(getListOfColumns(true));
+            });
+#endif
         }
     }
 }
 
 void Widget::doubleClickedTableLeftItem(QTableWidgetItem *item)
 {
-    if(m_isCompared)
+    if(m_isCompared || !(m_tableLeft->isReady() && m_tableRight->isReady()))
         return;
 
     int row = item->row();
-    int column = -1;
-    for(int i = 0; i < m_tableLeft->getTable()->horizontalHeader()->count(); ++i)
+    int tableLeftColumnCount = ui->tableWidgetLeft->columnCount();
+    int tableRightColumnCount = ui->tableWidgetRight->columnCount();
+    int tableRightRowCount = ui->tableWidgetRight->rowCount();
+    bool found = false;
+    for(int i = 0; i < tableLeftColumnCount; ++i)
     {
-        auto itemH = m_tableLeft->getTable()->horizontalHeaderItem(i);
-        if(itemH->data(Qt::DisplayRole) == "NameSt")
-            column = i;
+        auto itemH = ui->tableWidgetLeft->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == QLatin1String("NameSt"))
+        {
+            item = ui->tableWidgetLeft->item(row, i);
+            found = true;
+            break;
+        }
     }
-    if(column == -1)
-        return;
 
-    item = m_tableLeft->getTable()->item(row, column);
+    if(!found)
+        return;
 
     if((!m_item1) || (m_item1->background() != m_brushGreen))
     {
         m_brush1 = item->background();
         item->setBackground(m_brushGreen);
 
-        m_tableLeft->setStation(item->text());
+        for(int i = 0; i < tableLeftColumnCount; ++i)
+            ui->tableWidgetLeft->item(row, i)->setBackground(m_brushGreen);
 
+        m_tableLeft->setStation(item->text());
         m_item1 = item;
     }
     else if (m_item1->background() == m_brushGreen)
     {
         m_item1->setBackground(m_brush1);
+
+        for(int i = 0; i < tableLeftColumnCount; ++i)
+            ui->tableWidgetLeft->item(m_item1->row(), i)->setBackground(m_brush1);
+
         m_brush1 = item->background();
         item->setBackground(m_brushGreen);
 
-        m_tableLeft->setStation(item->text());
+        for(int i = 0; i < tableLeftColumnCount; ++i)
+            ui->tableWidgetLeft->item(row, i)->setBackground(m_brushGreen);
 
+        m_tableLeft->setStation(item->text());
         m_item1 = item;
     }
-    m_item1->setSelected(false);
+    ui->tableWidgetLeft->clearSelection();
 
     int columnSecond = -1;
-    for(int i = 0; i < m_tableRight->getTable()->horizontalHeader()->count(); ++i)
+    for(int i = 0; i < tableRightColumnCount; ++i)
     {
-        auto itemH = m_tableRight->getTable()->horizontalHeaderItem(i);
-        if(itemH->data(Qt::DisplayRole) == "NameSt")
+        auto itemH = ui->tableWidgetRight->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == QLatin1String("NameSt"))
             columnSecond = i;
     }
     if(columnSecond == -1)
-        return;
-
-    for(int i = 0; i < m_tableRight->getTable()->verticalHeader()->count(); ++i)
     {
-        auto itemV = m_tableRight->getTable()->item(i, columnSecond);
+        QMessageBox::information(this, QStringLiteral(u"Станция не найдена"), QStringLiteral(u"В противоположной таблице не была найдена выбранная вами сатнция, выберите другую станцию!"));
+        return;
+    }
+
+    for(int i = 0; i < tableRightRowCount; ++i)
+    {
+        auto itemV = ui->tableWidgetRight->item(i, columnSecond);
 
         if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
         {
             item = itemV;
+            row = item->row();
 
             if((!m_item2) || (m_item2->background() != m_brushGreen))
             {
                 m_brush2 = item->background();
                 item->setBackground(m_brushGreen);
 
-                m_tableRight->setStation(item->text());
+                for(int column = 0; column < tableRightColumnCount; ++column)
+                    ui->tableWidgetRight->item(row, column)->setBackground(m_brushGreen);
 
+                m_tableRight->setStation(item->text());
                 m_item2 = item;
             }
-            else if (m_item2->background() == m_brushGreen)
+            else if(m_item2->background() == m_brushGreen)
             {
                 m_item2->setBackground(m_brush2);
+
+                for(int column = 0; column < tableRightColumnCount; ++column)
+                    ui->tableWidgetRight->item(m_item2->row(), column)->setBackground(m_brush2);
+
                 m_brush2 = item->background();;
                 item->setBackground(m_brushGreen);
 
-                m_tableRight->setStation(item->text());
+                for(int column = 0; column < tableRightColumnCount; ++column)
+                    ui->tableWidgetRight->item(row, column)->setBackground(m_brushGreen);
 
+                m_tableRight->setStation(item->text());
                 m_item2 = item;
             }
-            m_item2->setSelected(false);
+            ui->tableWidgetRight->clearSelection();
         }
     }
 }
 
 void Widget::doubleClickedTableRightItem(QTableWidgetItem *item)
 {
-    if(m_isCompared)
+    if(m_isCompared || !(m_tableLeft->isReady() && m_tableRight->isReady()))
         return;
 
     int row = item->row();
-    int column = -1;
-    for(int i = 0; i < m_tableRight->getTable()->horizontalHeader()->count(); ++i)
+    int tableLeftColumnCount = ui->tableWidgetLeft->columnCount();
+    int tableRightColumnCount = ui->tableWidgetRight->columnCount();
+    int tableLeftRowCount = ui->tableWidgetLeft->rowCount();
+    bool found = false;
+    for(int i = 0; i < tableRightColumnCount; ++i)
     {
-        auto itemH = m_tableRight->getTable()->horizontalHeaderItem(i);
-        if(itemH->data(Qt::DisplayRole) == "NameSt")
-            column = i;
+        auto itemH = ui->tableWidgetRight->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == QLatin1String("NameSt"))
+        {
+            item = ui->tableWidgetRight->item(row, i);
+            found = true;
+            break;
+        }
     }
-    if(column == -1)
+    if(!found)
         return;
-
-    item = m_tableRight->getTable()->item(row, column);
 
     if((!m_item2) || (m_item2->background() != m_brushGreen))
     {
         m_brush2 = item->background();
-        item->setBackground(m_brushGreen);
+
+        for(int i = 0; i < tableRightColumnCount; ++i)
+            ui->tableWidgetRight->item(row, i)->setBackground(m_brushGreen);
 
         m_tableRight->setStation(item->text());
-
         m_item2 = item;
     }
-    else if (m_item2->background() == m_brushGreen)
+    else if(m_item2->background() == m_brushGreen)
     {
         m_item2->setBackground(m_brush2);
-        m_brush2 = item->background();;
+
+        for(int i = 0; i < tableRightColumnCount; ++i)
+            ui->tableWidgetRight->item(m_item2->row(), i)->setBackground(m_brush2);
+
+        m_brush2 = item->background();
         item->setBackground(m_brushGreen);
 
-        m_tableRight->setStation(item->text());
+        for(int i = 0; i < tableRightColumnCount; ++i)
+            ui->tableWidgetRight->item(row, i)->setBackground(m_brushGreen);
 
+        m_tableRight->setStation(item->text());
         m_item2 = item;
     }
-    m_item2->setSelected(false);
+    ui->tableWidgetRight->clearSelection();
 
     int columnSecond = -1;
-    for(int i = 0; i < m_tableLeft->getTable()->horizontalHeader()->count(); ++i)
+    for(int i = 0; i < tableLeftColumnCount; ++i)
     {
-        auto itemH = m_tableLeft->getTable()->horizontalHeaderItem(i);
-        if(itemH->data(Qt::DisplayRole) == "NameSt")
+        auto itemH = ui->tableWidgetLeft->horizontalHeaderItem(i);
+        if(itemH->data(Qt::DisplayRole) == QLatin1String("NameSt"))
             columnSecond = i;
     }
     if(columnSecond == -1)
-        return;
-
-    for(int i = 0; i < m_tableLeft->getTable()->verticalHeader()->count(); ++i)
     {
-        auto itemV = m_tableLeft->getTable()->item(i, columnSecond);
+        QMessageBox::information(this, QStringLiteral(u"Станция не найдена"), QStringLiteral(u"В противоположной таблице не была найдена выбранная вами сатнция, выберите другую станцию!"));
+        return;
+    }
+
+    for(int i = 0; i < tableLeftRowCount; ++i)
+    {
+        auto itemV = ui->tableWidgetLeft->item(i, columnSecond);
         if(itemV->data(Qt::DisplayRole) == item->data(Qt::DisplayRole))
         {
             item = itemV;
-
+            row = item->row();
             if((!m_item1) || (m_item1->background() != m_brushGreen))
             {
                 m_brush1 = item->background();
                 item->setBackground(m_brushGreen);
 
-                m_tableLeft->setStation(item->text());
+                for(int column = 0; column < tableLeftColumnCount; ++column)
+                    ui->tableWidgetLeft->item(row, column)->setBackground(m_brushGreen);
 
+                m_tableLeft->setStation(item->text());
                 m_item1 = item;
             }
             else if (m_item1->background() == m_brushGreen)
             {
                 m_item1->setBackground(m_brush1);
+
+                for(int column = 0; column < tableLeftColumnCount; ++column)
+                    ui->tableWidgetLeft->item(m_item1->row(), column)->setBackground(m_brush1);
+
                 m_brush1 = item->background();
                 item->setBackground(m_brushGreen);
 
-                m_tableLeft->setStation(item->text());
+                for(int column = 0; column < tableLeftColumnCount; ++column)
+                    ui->tableWidgetLeft->item(row, column)->setBackground(m_brushGreen);
 
+                m_tableLeft->setStation(item->text());
                 m_item1 = item;
             }
-            m_item1->setSelected(false);
+            ui->tableWidgetLeft->clearSelection();
         }
     }
 }
@@ -418,8 +526,34 @@ Widget::~Widget()
     delete m_tableRight;
     delete m_tableLeft;
     QStringList list =  QSqlDatabase::connectionNames();
-    for(int i = 0; i < list.size(); i++)
-    {
+    for(int i = 0; i < list.size(); ++i)
         QSqlDatabase::removeDatabase(list[i]);
+}
+
+void Widget::on_pushButtonUp_clicked()
+{
+    int vectorSize = vectorOfDiffRows.size();
+    if(m_isCompared && (vectorSize > 0))
+    {
+        if((currentIndex == -1) || !(--currentIndex >= 0))
+            currentIndex = vectorSize - 1;
+
+        int row = vectorOfDiffRows.at(currentIndex);
+        auto item = ui->tableWidgetLeft->item(row, 0);
+        ui->tableWidgetLeft->scrollToItem(item, QAbstractItemView::PositionAtTop);
+    }
+}
+
+void Widget::on_pushButtonDown_clicked()
+{
+    int vectorSize = vectorOfDiffRows.size();
+    if(m_isCompared && (vectorSize > 0))
+    {
+        if(!(vectorSize > (++currentIndex)))
+            currentIndex = 0;
+
+        int row = vectorOfDiffRows.at(currentIndex);
+        auto item = ui->tableWidgetLeft->item(row, 0);
+        ui->tableWidgetLeft->scrollToItem(item, QAbstractItemView::PositionAtTop);
     }
 }

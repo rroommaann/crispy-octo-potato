@@ -1,17 +1,24 @@
 #include "mytable.h"
 #include "globalFunctionsQT.h"
 
-MyTable::MyTable(QString dbName, QWidget *parent)
-    : QWidget(parent)
+MyTable::MyTable(const QString &dbName, QWidget *parent)
+    : QWidget(parent),
+    m_nameDB{dbName}
 {
-    m_nameDB = dbName;
-
-    QString q = "SELECT * "
+    QString q = QStringLiteral(u"SELECT * "
                 "FROM Stations "
-                "ORDER BY NoSt ASC;";
+                "ORDER BY NoSt ASC;");
     QSqlQuery query(getDb(dbName, "64465"));
     query.exec(q);
-    hash = MultiHashOfRecords(&query, "NoSt");
+    if(hash)
+        delete hash;
+    hash = new MultiHashOfRecords(query, QStringLiteral("NoSt"));
+
+    query.first();
+    do
+    {
+        listOfStations << query.record().field("NameSt").value().toString();
+    } while(query.next());
 }
 
 MyTable::MyTable(QWidget *parent)
@@ -21,16 +28,17 @@ MyTable::MyTable(QWidget *parent)
 
 void MyTable::setViewReady()
 {
-    table->setColumnCount(hash.getColumns().count());
-    table->setHorizontalHeaderLabels(hash.getColumns());
+    table->setColumnCount(hash->getColumns().count());
+    table->setHorizontalHeaderLabels(hash->getColumns());
 
-    for(auto record : hash.getMassive()->values())
+    auto values = hash->getMassive()->values();
+    for(const auto &record : qAsConst(values))
     {
         table->setRowCount(table->rowCount() + 1);
         int j = 0;
         while(record.fieldName(j) != "")
         {
-            QTableWidgetItem *item = new QTableWidgetItem(record.field(j).value().toString());
+            auto *item = new QTableWidgetItem(record.field(j).value().toString());
 
             table->setItem(table->rowCount() - 1, j, item);
             j++;
@@ -41,57 +49,61 @@ void MyTable::setViewReady()
     ready = true;
 }
 
-QString MyTable::getNameDB() const
+auto MyTable::getListOfStations() const -> const QStringList &
+{
+    return listOfStations;
+}
+
+auto MyTable::getNameDB() const -> QString
 {
     return m_nameDB;
 }
 
-void MyTable::createNewHashData(QStringList listOfColumns, tableType type)
+void MyTable::createNewHashData(const QStringList &listOfColumns, tableType type)
 {
-    QSqlQuery query(getDb(m_nameDB, "64465"));
+    QSqlQuery query(getDb(m_nameDB, QStringLiteral(u"64465")));
     query.exec(prepareQuery(choosedStation, listOfColumns, type));
     QString key;
     if(type == TS)
-    {
-        key = "NameTs";
-    }
+        key = QStringLiteral(u"NameTs");
     else if (type == TU)
-    {
-        key = "NameTu";
-    }
+        key = QStringLiteral(u"NameTu");
     else if(type == Stations)
-    {
-        key = "NoSt";
-    }
+        key = QStringLiteral(u"NoSt");
     else if (type == RouteSrc)
-    {
-        key = "No";
-    }
+        key = QStringLiteral(u"No");
+    else if (type == TuSpok)
+        key = QStringLiteral(u"No");
 
-    hash = MultiHashOfRecords(&query, key);
+    if(hash)
+        delete hash;
+    hash = new MultiHashOfRecords(query, key);
 }
 
-void MyTable::resetTable(QString dbName)
+void MyTable::resetTable(const QString &dbName)
 {
     if(!dbName.isEmpty())
         m_nameDB = dbName;
-    QString q = "SELECT * "
+
+    QString q = QStringLiteral(u"SELECT * "
                 "FROM Stations "
-                "ORDER BY NoSt ASC;";
-    QSqlQuery query(getDb(m_nameDB, "64465"));
+                "ORDER BY NoSt ASC;");
+    QSqlQuery query(getDb(m_nameDB, QStringLiteral(u"64465")));
     query.exec(q);
 
-    hash = MultiHashOfRecords(&query, "NoSt");
+    if(hash)
+        delete hash;
+    hash = new MultiHashOfRecords(query, QStringLiteral(u"NoSt"));
     table->setRowCount(0);
     setViewReady();
 }
 
-bool MyTable::isReady() const
+auto MyTable::isReady() const -> bool
 {
     return ready;
 }
 
-QTableWidget *MyTable::getTable() const
+auto MyTable::getTable() const -> QTableWidget *
 {
     return table;
 }
@@ -102,16 +114,15 @@ void MyTable::setTable(QTableWidget *value)
     setViewReady();
 }
 
-MultiHashOfRecords MyTable::getHash() const
+auto MyTable::getHash() const -> MultiHashOfRecords *
 {
     return hash;
 }
 
-void MyTable::setStation(QString q)
+void MyTable::setStation(const QString &stationName)
 {
-    choosedStation = q;
+    choosedStation = stationName;
 }
 
 MyTable::~MyTable()
-{
-}
+= default;
